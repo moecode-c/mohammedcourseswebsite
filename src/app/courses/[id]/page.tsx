@@ -3,10 +3,12 @@ import { CourseView } from "@/components/game/CourseView";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import User from "@/models/User";
+import CertificateRequest from "@/models/CertificateRequest";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import mongoose from "mongoose";
+import "@/models/Section"; // Force Section model registration
 
 async function getCourseData(id: string) {
     const cookieStore = await cookies();
@@ -21,6 +23,7 @@ async function getCourseData(id: string) {
     let user = null;
     let hasFullAccess = false;
     let isAdmin = false;
+    let hasPendingCertificate = false;
 
     if (token) {
         const payload = verifyToken(token);
@@ -36,6 +39,13 @@ async function getCourseData(id: string) {
                         hasFullAccess = true;
                     }
                 }
+
+                // Check if user has already requested a certificate for this course
+                const existingCertRequest = await CertificateRequest.findOne({
+                    userId: payload.userId,
+                    courseId: id
+                });
+                hasPendingCertificate = !!existingCertRequest;
             }
         }
     }
@@ -67,15 +77,16 @@ async function getCourseData(id: string) {
         };
     });
 
-    return {
+    return JSON.parse(JSON.stringify({
         course: {
             ...course,
             _id: course._id.toString(),
             sections,
             isLocked: !hasFullAccess && !course.isFree
         },
-        user: user ? { ...user, _id: (user as any)._id.toString(), completedSections: (user as any).completedSections.map((id: any) => id.toString()) } : null // sending minimal user data
-    };
+        user: user ? { ...user, _id: (user as any)._id.toString(), completedSections: (user as any).completedSections.map((id: any) => id.toString()) } : null,
+        hasPendingCertificate
+    }));
 }
 
 export default async function CoursePage(
@@ -95,7 +106,7 @@ export default async function CoursePage(
     return (
         <main className="min-h-screen bg-slate-950 text-white">
             <Navbar />
-            <CourseView course={data.course} user={data.user} />
+            <CourseView course={data.course} user={data.user} hasPendingCertificate={data.hasPendingCertificate} />
         </main>
     );
 }

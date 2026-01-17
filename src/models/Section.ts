@@ -14,35 +14,40 @@ export interface IQuiz {
 export interface ISection extends Document {
     courseId: mongoose.Types.ObjectId;
     title: string;
-    content: string; // Markdown
-    videoUrl?: string; // YouTube link
-    pdfUrl?: string; // Google Drive link
+    content: string; // Markdown or description
+    type: "text" | "video" | "quiz" | "link";
+    videoUrl?: string; // For video type
+    linkUrl?: string; // For link type (PDF, Drive, etc)
+    questions?: {
+        questionText: string;
+        options: string[];
+        correctOptionIndex: number;
+    }[]; // For quiz type
     isFree: boolean;
     order: number;
-    quiz?: IQuiz;
     createdAt: Date;
     updatedAt: Date;
 }
-
-const QuestionSchema = new Schema({
-    questionText: { type: String, required: true },
-    options: [{ type: String, required: true }],
-    correctOptionIndex: { type: Number, required: true },
-});
 
 const SectionSchema: Schema<ISection> = new Schema(
     {
         courseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
         title: { type: String, required: true },
-        content: { type: String, required: true },
+        content: { type: String, default: "" },
+        type: {
+            type: String,
+            enum: ["text", "video", "quiz", "link"],
+            default: "text"
+        },
         videoUrl: { type: String },
-        pdfUrl: { type: String },
+        linkUrl: { type: String },
+        questions: [{
+            questionText: String,
+            options: [String],
+            correctOptionIndex: Number
+        }],
         isFree: { type: Boolean, default: false },
         order: { type: Number, required: true },
-        quiz: {
-            questions: [QuestionSchema],
-            passScore: { type: Number, default: 0 },
-        },
     },
     { timestamps: true }
 );

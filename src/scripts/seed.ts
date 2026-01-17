@@ -71,6 +71,7 @@ async function seed() {
         difficulty: "advanced",
         price: 500,
         isFree: false,
+        isFeatured: true,
     });
 
     console.log("📚 Courses Created");

@@ -18,7 +18,7 @@ export function Footer() {
                     <h4 className="font-heading text-primary text-sm mb-4">NAVIGATION</h4>
                     <ul className="space-y-2 font-mono text-sm text-slate-400">
                         <li><Link href="/" className="hover:text-white transition-colors">Home Base</Link></li>
-                        <li><Link href="/courses" className="hover:text-white transition-colors">Mission List</Link></li>
+                        <li><Link href="/courses" className="hover:text-white transition-colors">Course List</Link></li>
                         <li><Link href="/login" className="hover:text-white transition-colors">Login / Register</Link></li>
                     </ul>
                 </div>

@@ -7,6 +7,7 @@ export interface ICourse extends Document {
     difficulty: "beginner" | "intermediate" | "advanced";
     price: number;
     isFree: boolean;
+    isFeatured: boolean;
     sections: mongoose.Types.ObjectId[];
     createdAt: Date;
     updatedAt: Date;
@@ -24,6 +25,7 @@ const CourseSchema: Schema<ICourse> = new Schema(
         },
         price: { type: Number, default: 0 },
         isFree: { type: Boolean, default: false },
+        isFeatured: { type: Boolean, default: false },
         sections: [{ type: Schema.Types.ObjectId, ref: "Section" }],
     },
     { timestamps: true }

@@ -1,51 +1,38 @@
-import Image from "next/image"; // Added import
-
-// ... (existing imports)
-
-// ...
-
-{
-    course.thumbnail && (
-        <Image
-            src={course.thumbnail}
-            alt={course.title}
-            fill
-            className="object-cover"
-        />
-    )
-}
 import { GameCard } from "@/components/ui/GameCard";
 import { GameButton } from "@/components/ui/GameButton";
+import { Navbar } from "@/components/ui/Navbar";
 import Link from "next/link";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import User from "@/models/User";
+import CertificateRequest from "@/models/CertificateRequest";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
-import { Lock, Play, Zap } from "lucide-react";
+import { Play, Zap, Trophy, BookOpen, Target, ArrowRight, Flame } from "lucide-react";
 
 async function getData() {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
-    if (!token) return { courses: [], user: null };
+    if (!token) return { courses: [], user: null, certificateRequests: [] };
     const payload = verifyToken(token);
-    if (!payload) return { courses: [], user: null };
+    if (!payload) return { courses: [], user: null, certificateRequests: [] };
 
     await dbConnect();
-    // Fetch user to know unlocked courses
     const user = await User.findById(payload.userId);
-    // Fetch all courses
-    // In a real app, maybe pagination or filtering
-    const courses = await Course.find({}).sort({ order: 1, createdAt: 1 }).lean();
+    const courses = await Course.find({}).populate("sections").sort({ order: 1, createdAt: 1 }).lean();
+
+    // Fetch certificate requests for this user
+    const certificateRequests = await CertificateRequest.find({ userId: payload.userId }).lean();
 
     return {
         courses: JSON.parse(JSON.stringify(courses)),
-        user: user ? JSON.parse(JSON.stringify(user)) : null
+        user: user ? JSON.parse(JSON.stringify(user)) : null,
+        certificateRequests: JSON.parse(JSON.stringify(certificateRequests))
     };
 }
 
 export default async function DashboardPage() {
-    const { courses, user } = await getData();
+    const { courses, user, certificateRequests } = await getData();
 
     if (!user) {
         return (
@@ -55,73 +42,183 @@ export default async function DashboardPage() {
         )
     }
 
+    // Only show courses the user has access to (free courses OR unlocked paid courses OR admin)
+    const enrolledCourses = courses.filter((c: any) =>
+        c.isFree || user.unlockedCourses?.includes(c._id) || user.role === "admin"
+    );
+
+    // Calculate stats
+    const completedCoursesCount = user.completedCourses?.length || 0;
+
+    // Courses with progress (started but not completed)
+    const coursesInProgress = enrolledCourses.filter((c: any) => {
+        const sectionIds = c.sections?.map((s: any) => s._id) || [];
+        const hasStarted = sectionIds.some((sId: string) => user.completedSections?.includes(sId));
+        const isCompleted = user.completedCourses?.includes(c._id);
+        return hasStarted && !isCompleted;
+    });
+
+    // Calculate course progress
+    const getCourseProgress = (course: any) => {
+        if (!course.sections?.length) return 0;
+        const sectionIds = course.sections.map((s: any) => s._id);
+        const completedInCourse = sectionIds.filter((sId: string) => user.completedSections?.includes(sId)).length;
+        return Math.round((completedInCourse / sectionIds.length) * 100);
+    };
+
+    // Calculate streak
+    const streakCount = user.streak?.count || 0;
+
     return (
         <main className="min-h-screen bg-slate-950 text-white pb-20">
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-6 py-10">
-                <header className="mb-12">
-                    <h1 className="text-4xl font-heading mb-4 text-shadow">Mission Select</h1>
-                    <p className="font-mono text-slate-400">Select a stage to begin your training.</p>
+                {/* Stats Section */}
+                <section className="mb-12">
+                    <h2 className="text-xl font-heading text-slate-400 mb-6">YOUR PROFILE</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <GameCard className="text-center p-6">
+                            <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                            <div className="text-3xl font-heading text-primary">{user.xp || 0}</div>
+                            <div className="text-xs font-mono text-slate-500">TOTAL XP</div>
+                        </GameCard>
+                        <GameCard className="text-center p-6">
+                            <Trophy className="w-8 h-8 text-primary mx-auto mb-2" />
+                            <div className="text-3xl font-heading text-white">{user.level || 1}</div>
+                            <div className="text-xs font-mono text-slate-500">LEVEL</div>
+                        </GameCard>
+                        <GameCard className="text-center p-6">
+                            <Flame className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                            <div className="text-3xl font-heading text-orange-400">{streakCount}</div>
+                            <div className="text-xs font-mono text-slate-500">DAY STREAK</div>
+                        </GameCard>
+                        <GameCard className="text-center p-6">
+                            <BookOpen className="w-8 h-8 text-secondary mx-auto mb-2" />
+                            <div className="text-3xl font-heading text-white">{completedCoursesCount}</div>
+                            <div className="text-xs font-mono text-slate-500">COMPLETED</div>
+                        </GameCard>
+                        <GameCard className="text-center p-6">
+                            <Target className="w-8 h-8 text-arcade mx-auto mb-2" />
+                            <div className="text-3xl font-heading text-white">{enrolledCourses.length}</div>
+                            <div className="text-xs font-mono text-slate-500">ENROLLED</div>
+                        </GameCard>
+                    </div>
+                </section>
+
+                {/* Continue Learning Section */}
+                {coursesInProgress.length > 0 && (
+                    <section className="mb-12">
+                        <h2 className="text-xl font-heading text-slate-400 mb-6">CONTINUE LEARNING</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {coursesInProgress.map((course: any) => {
+                                const progress = getCourseProgress(course);
+                                return (
+                                    <Link key={course._id} href={`/courses/${course._id}`}>
+                                        <GameCard className="p-4 hover:border-primary/50 transition-colors cursor-pointer flex items-center gap-4">
+                                            <div className="w-16 h-16 bg-slate-800 rounded overflow-hidden shrink-0">
+                                                {course.thumbnail && <img src={course.thumbnail} alt="" className="w-full h-full object-cover" />}
+                                            </div>
+                                            <div className="flex-grow">
+                                                <h4 className="font-heading text-white">{course.title}</h4>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <div className="flex-grow h-2 bg-slate-800 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                                                    </div>
+                                                    <span className="text-xs font-mono text-primary">{progress}%</span>
+                                                </div>
+                                            </div>
+                                            <ArrowRight className="w-5 h-5 text-slate-500" />
+                                        </GameCard>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )}
+
+                {/* My Courses Header */}
+                <header className="mb-8">
+                    <h1 className="text-4xl font-heading mb-4 text-shadow">My Courses</h1>
+                    <p className="font-mono text-slate-400">Courses you have access to. <Link href="/courses" className="text-primary hover:underline">Browse all courses →</Link></p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {courses.map((course: any) => {
-                        const isUnlocked = course.isFree || user.unlockedCourses.includes(course._id) || user.role === "admin";
+                {/* Enrolled Courses Only */}
+                {enrolledCourses.length === 0 ? (
+                    <div className="text-center py-16 border border-slate-800 rounded bg-slate-900/50">
+                        <BookOpen className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+                        <h3 className="text-xl font-heading text-slate-500 mb-2">No Courses Yet</h3>
+                        <p className="text-slate-600 font-mono mb-6">You haven't enrolled in any courses yet.</p>
+                        <Link href="/courses">
+                            <GameButton>BROWSE COURSES</GameButton>
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {enrolledCourses.map((course: any) => {
+                            const progress = getCourseProgress(course);
+                            const isCompleted = user.completedCourses?.includes(course._id);
 
-                        return (
-                            <div key={course._id} className="relative group">
-                                <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                            return (
+                                <div key={course._id} className="relative group">
+                                    <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                                <GameCard className="h-full flex flex-col relative z-10 bg-slate-900/90 backdrop-blur">
-                                    <div className="aspect-video bg-slate-800 mb-4 rounded border border-slate-700 overflow-hidden relative">
-                                        {/* Placeholder or specific image */}
-                                        <div className="absolute inset-0 flex items-center justify-center text-slate-600 font-mono text-xs">
-                                            [NO_SIGNAL]
-                                        </div>
-                                        {course.thumbnail && (
-                                            <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                                        )}
-
-                                        {!isUnlocked && (
-                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-[2px]">
-                                                <Lock className="w-12 h-12 text-slate-400" />
+                                    <GameCard className="h-full flex flex-col relative z-10 bg-slate-900/90 backdrop-blur">
+                                        <div className="aspect-video bg-slate-800 mb-4 rounded border border-slate-700 overflow-hidden relative">
+                                            <div className="absolute inset-0 flex items-center justify-center text-slate-600 font-mono text-xs">
+                                                [NO_SIGNAL]
                                             </div>
-                                        )}
-                                    </div>
+                                            {course.thumbnail && (
+                                                <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                                            )}
 
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="font-heading text-lg text-primary">{course.title}</h3>
-                                        {course.isFree ? (
-                                            <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded font-mono">FREE</span>
-                                        ) : (
-                                            <span className="text-xs bg-arcade/20 text-arcade px-2 py-1 rounded font-mono">PAID</span>
-                                        )}
-                                    </div>
+                                            {isCompleted && (
+                                                <div className="absolute top-2 right-2 bg-primary text-black text-xs font-mono px-2 py-1 rounded">
+                                                    ✓ COMPLETED
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    <p className="text-slate-400 text-sm font-mono flex-grow mb-6 line-clamp-3">
-                                        {course.description}
-                                    </p>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-heading text-lg text-primary">{course.title}</h3>
+                                            {course.isFree ? (
+                                                <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded font-mono">FREE</span>
+                                            ) : (
+                                                <span className="text-xs bg-arcade/20 text-arcade px-2 py-1 rounded font-mono">{course.price} EGP</span>
+                                            )}
+                                        </div>
 
-                                    <div className="mt-auto">
-                                        <Link href={`/courses/${course._id}`}>
-                                            <GameButton
-                                                className="w-full"
-                                                variant={isUnlocked ? "primary" : "secondary"}
-                                            >
-                                                {isUnlocked ? (
-                                                    <span className="flex items-center justify-center gap-2"><Play className="w-4 h-4" /> START MISSION</span>
-                                                ) : (
-                                                    <span className="flex items-center justify-center gap-2"><Lock className="w-4 h-4" /> UNLOCK</span>
-                                                )}
-                                            </GameButton>
-                                        </Link>
-                                    </div>
-                                </GameCard>
-                            </div>
-                        );
-                    })}
-                </div>
+                                        <p className="text-slate-400 text-sm font-mono flex-grow mb-4 line-clamp-2">
+                                            {course.description}
+                                        </p>
+
+                                        {/* Progress Bar */}
+                                        <div className="mb-4">
+                                            <div className="flex justify-between text-xs font-mono text-slate-500 mb-1">
+                                                <span>PROGRESS</span>
+                                                <span>{progress}%</span>
+                                            </div>
+                                            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                                <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-auto">
+                                            <Link href={`/courses/${course._id}`}>
+                                                <GameButton className="w-full" variant="primary">
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        <Play className="w-4 h-4" />
+                                                        {isCompleted ? "REVIEW COURSE" : progress > 0 ? "CONTINUE COURSE" : "START COURSE"}
+                                                    </span>
+                                                </GameButton>
+                                            </Link>
+                                        </div>
+                                    </GameCard>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </main>
     );

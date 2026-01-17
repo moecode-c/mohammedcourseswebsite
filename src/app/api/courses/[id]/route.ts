@@ -87,3 +87,50 @@ export async function GET(
         );
     }
 }
+
+export async function PUT(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        await dbConnect();
+        const { id } = await params;
+        const body = await req.json();
+
+        // Validate ID
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+        }
+
+        // Check Admin Access
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
+
+        if (!token) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const payload = verifyToken(token);
+        if (!payload || payload.role !== "admin") {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const updatedCourse = await Course.findByIdAndUpdate(
+            id,
+            { $set: body },
+            { new: true }
+        );
+
+        if (!updatedCourse) {
+            return NextResponse.json({ error: "Not Found" }, { status: 404 });
+        }
+
+        return NextResponse.json({ course: updatedCourse });
+    } catch (error) {
+        console.error("Course Update Error:", error);
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
+    }
+}

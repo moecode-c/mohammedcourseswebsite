@@ -1,12 +1,17 @@
 import Link from "next/link";
-import Image from "next/image"; // Added import
+import Image from "next/image";
 import { GameButton } from "@/components/ui/GameButton";
 import { GameCard } from "@/components/ui/GameCard";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
-import { Gamepad2, Brain, Trophy, Ghost } from "lucide-react";
+import { Gamepad2, Brain, Trophy, Ghost, Star } from "lucide-react";
+import dbConnect from "@/lib/db";
+import Course from "@/models/Course";
 
-export default function Home() {
+export default async function Home() {
+  await dbConnect();
+  const featuredCourses = await Course.find({ isFeatured: true }).lean();
+
   return (
     <main className="min-h-screen bg-slate-950 flex flex-col items-center">
       <Navbar />
@@ -31,7 +36,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
+            <Link href="/dashboard">
               <GameButton size="lg" className="shadow-[0_0_20px_var(--color-primary)]">
                 Press Start
               </GameButton>
@@ -45,7 +50,53 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Me Section - NEW */}
+
+      {/* Featured Courses Section */}
+      {
+        featuredCourses.length > 0 && (
+          <section className="w-full py-24 bg-slate-900 border-b border-slate-800">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="flex items-center gap-3 mb-10 justify-center">
+                <Star className="w-8 h-8 text-yellow-500 animate-spin-slow" />
+                <h2 className="text-3xl md:text-4xl font-heading text-white text-shadow-sm">FEATURED MISSIONS</h2>
+                <Star className="w-8 h-8 text-yellow-500 animate-spin-slow" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredCourses.map((course: any) => (
+                  <Link href={`/courses/${course._id}`} key={String(course._id)}>
+                    <GameCard className="h-full hover:scale-105 transition-transform duration-300">
+                      <div className="relative w-full h-40 mb-4 overflow-hidden rounded border border-slate-700">
+                        <Image
+                          src={course.thumbnail}
+                          alt={course.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <h3 className="font-heading text-xl text-primary mb-2 line-clamp-1">{course.title}</h3>
+                      <p className="text-slate-400 text-sm line-clamp-2 mb-4 font-mono">{course.description}</p>
+
+                      <div className="flex justify-between items-center mt-auto">
+                        <span className={`text-xs px-2 py-1 rounded border ${course.difficulty === 'beginner' ? 'bg-green-500/10 text-green-500 border-green-500/50' :
+                          course.difficulty === 'intermediate' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/50' :
+                            'bg-red-500/10 text-red-500 border-red-500/50'
+                          }`}>
+                          {course.difficulty.toUpperCase()}
+                        </span>
+                        <span className="font-bold text-white font-mono">
+                          {course.isFree ? "FREE TO PLAY" : `${course.price} EGP`}
+                        </span>
+                      </div>
+                    </GameCard>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )
+      }
+
       <section className="w-full py-24 bg-slate-900 border-y border-slate-800 relative shadow-2xl z-10">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
           {/* Image Container with Glitch Effect Border */}
@@ -118,6 +169,6 @@ export default function Home() {
       </section>
 
       <Footer />
-    </main>
+    </main >
   );
 }

@@ -32,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${pressStart2P.variable} ${vt323.variable} antialiased bg-slate-950 text-slate-100`}
       >
         {children}
