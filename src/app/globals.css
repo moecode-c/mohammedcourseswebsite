@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-press-start);
+  --font-pixel: var(--font-vt323);
+
+  --color-primary: #39FF14;
+  --color-secondary: #D946EF;
+  --color-arcade: #F97316;
+  
+  --color-background: #020617;
+  --color-foreground: #F8FAFC;
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .text-shadow-sm {
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.5);
+  }
+  .text-shadow {
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+  }
+  .text-shadow-lg {
+    text-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+  }
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
