@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { GameButton } from "@/components/ui/GameButton";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Trash } from "lucide-react";
 
 interface CertificateRequest {
     _id: string;
@@ -49,6 +49,16 @@ export function AdminCertificates() {
         } catch (e) { console.error(e); }
     };
 
+    const handleDeleteRequest = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this certificate request?")) return;
+        try {
+            const res = await fetch(`/api/admin/certificates/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                setRequests(requests.filter(r => r._id !== id));
+            }
+        } catch (e) { console.error(e); }
+    };
+
     const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
 
     const filteredRequests = requests.filter(req => filter === "all" ? true : req.status === filter);
@@ -69,8 +79,8 @@ export function AdminCertificates() {
                         key={f}
                         onClick={() => setFilter(f as any)}
                         className={`px-4 py-1 rounded text-sm font-mono uppercase transition-colors ${filter === f
-                                ? "bg-primary text-slate-900 font-bold"
-                                : "bg-slate-900 text-slate-500 hover:text-white"
+                            ? "bg-primary text-slate-900 font-bold"
+                            : "bg-slate-900 text-slate-500 hover:text-white"
                             }`}
                     >
                         {f}
@@ -99,12 +109,15 @@ export function AdminCertificates() {
                         </div>
                     </div>
 
-                    {req.status === "pending" && (
-                        <div className="flex gap-2">
-                            <GameButton size="sm" variant="danger" onClick={() => handleAction(req._id, "rejected")}>REJECT</GameButton>
-                            <GameButton size="sm" variant="primary" onClick={() => handleAction(req._id, "approved")}>APPROVE</GameButton>
-                        </div>
-                    )}
+                    <div className="flex gap-2">
+                        <GameButton size="sm" variant="danger" onClick={() => handleDeleteRequest(req._id)} title="Delete Request"><Trash className="w-4 h-4" /></GameButton>
+                        {req.status === "pending" && (
+                            <>
+                                <GameButton size="sm" variant="danger" onClick={() => handleAction(req._id, "rejected")}>REJECT</GameButton>
+                                <GameButton size="sm" variant="primary" onClick={() => handleAction(req._id, "approved")}>APPROVE</GameButton>
+                            </>
+                        )}
+                    </div>
                 </div>
             ))}
         </div>

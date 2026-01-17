@@ -177,7 +177,17 @@ export default async function DashboardPage() {
                                         </div>
 
                                         <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-heading text-lg text-primary">{course.title}</h3>
+                                            <div>
+                                                <h3 className="font-heading text-lg text-primary">{course.title}</h3>
+                                                {course.difficulty && (
+                                                    <span className={`text-[10px] font-mono px-1.5 rounded uppercase mt-1 inline-block border ${course.difficulty === 'beginner' ? 'bg-green-500/20 text-green-500 border-green-500/30' :
+                                                            course.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' :
+                                                                'bg-red-500/20 text-red-500 border-red-500/30'
+                                                        }`}>
+                                                        {course.difficulty}
+                                                    </span>
+                                                )}
+                                            </div>
                                             {course.isFree ? (
                                                 <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono">FREE PLAY</span>
                                             ) : (

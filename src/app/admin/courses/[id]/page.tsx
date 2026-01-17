@@ -106,8 +106,7 @@ export default function EditCoursePage() {
                     isFeatured: course.isFeatured,
                     difficulty: course.difficulty,
                     thumbnail: course.thumbnail,
-                    difficulty: course.difficulty,
-                    thumbnail: course.thumbnail,
+
                     languages: languageInput.split(",").map(s => s.trim()).filter(Boolean)
                 }),
             });

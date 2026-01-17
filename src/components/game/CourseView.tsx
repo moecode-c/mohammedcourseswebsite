@@ -266,13 +266,16 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
 
                                                                         if (videoId) {
                                                                             return (
-                                                                                <iframe
-                                                                                    src={`https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0`}
-                                                                                    title={currentSection.title}
-                                                                                    className="w-full h-full"
-                                                                                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                                                                    allowFullScreen
-                                                                                />
+                                                                                <>
+                                                                                    <div className="absolute top-0 right-0 w-32 h-16 z-20" title="Overlay"></div>
+                                                                                    <iframe
+                                                                                        src={`https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0`}
+                                                                                        title={currentSection.title}
+                                                                                        className="w-full h-full"
+                                                                                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                                                                        allowFullScreen
+                                                                                    />
+                                                                                </>
                                                                             );
                                                                         } else {
                                                                             return (

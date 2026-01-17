@@ -20,3 +20,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         return NextResponse.json({ error: "Server Error" }, { status: 500 });
     }
 }
+
+export async function DELETE(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        await dbConnect();
+        const { id } = await params;
+        await CertificateRequest.findByIdAndDelete(id);
+        return NextResponse.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    }
+}
