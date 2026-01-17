@@ -1,10 +1,12 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import "./Section"; // Helper to ensure model registration
 
 export interface ICourse extends Document {
     title: string;
     description: string;
     thumbnail: string;
     difficulty: "beginner" | "intermediate" | "advanced";
+    languages: string[];
     price: number;
     isFree: boolean;
     isFeatured: boolean;
@@ -23,6 +25,7 @@ const CourseSchema: Schema<ICourse> = new Schema(
             enum: ["beginner", "intermediate", "advanced"],
             default: "beginner",
         },
+        languages: { type: [String], default: [] },
         price: { type: Number, default: 0 },
         isFree: { type: Boolean, default: false },
         isFeatured: { type: Boolean, default: false },

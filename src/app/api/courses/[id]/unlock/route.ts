@@ -47,6 +47,13 @@ export async function POST(
             );
         }
 
+        // Fetch Course to get current price
+        const Course = (await import("@/models/Course")).default;
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return NextResponse.json({ error: "Course not found" }, { status: 404 });
+        }
+
         const request = await AccessRequest.create({
             userId: payload.userId,
             courseId,
@@ -55,6 +62,7 @@ export async function POST(
                 fullName,
                 phoneNumber,
                 transactionNotes,
+                amount: course.isFree ? 0 : course.price
             },
         });
 

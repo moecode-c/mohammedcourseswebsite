@@ -10,6 +10,8 @@ import Link from "next/link";
 import mongoose from "mongoose";
 import "@/models/Section"; // Force Section model registration
 
+import AccessRequest from "@/models/AccessRequest";
+
 async function getCourseData(id: string) {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
@@ -24,6 +26,7 @@ async function getCourseData(id: string) {
     let hasFullAccess = false;
     let isAdmin = false;
     let hasPendingCertificate = false;
+    let hasPendingAccessRequest = false;
 
     if (token) {
         const payload = verifyToken(token);
@@ -40,12 +43,20 @@ async function getCourseData(id: string) {
                     }
                 }
 
-                // Check if user has already requested a certificate for this course
+                // Check pending certificate
                 const existingCertRequest = await CertificateRequest.findOne({
                     userId: payload.userId,
                     courseId: id
                 });
                 hasPendingCertificate = !!existingCertRequest;
+
+                // Check pending access request
+                const existingAccessRequest = await AccessRequest.findOne({
+                    userId: payload.userId,
+                    courseId: id,
+                    status: "pending"
+                });
+                hasPendingAccessRequest = !!existingAccessRequest;
             }
         }
     }
@@ -63,7 +74,7 @@ async function getCourseData(id: string) {
                 isFree: section.isFree,
                 order: section.order,
                 isLocked: true,
-                // Omit content/video
+                // Omit content/video/link
             };
         }
         return {
@@ -71,8 +82,10 @@ async function getCourseData(id: string) {
             title: section.title,
             isFree: section.isFree,
             order: section.order,
+            type: section.type,     // Pass Type
             content: section.content,
             videoUrl: section.videoUrl,
+            linkUrl: section.linkUrl, // Pass Link URL
             isLocked: false,
         };
     });
@@ -85,7 +98,8 @@ async function getCourseData(id: string) {
             isLocked: !hasFullAccess && !course.isFree
         },
         user: user ? { ...user, _id: (user as any)._id.toString(), completedSections: (user as any).completedSections.map((id: any) => id.toString()) } : null,
-        hasPendingCertificate
+        hasPendingCertificate,
+        hasPendingAccessRequest
     }));
 }
 
@@ -106,7 +120,12 @@ export default async function CoursePage(
     return (
         <main className="min-h-screen bg-slate-950 text-white">
             <Navbar />
-            <CourseView course={data.course} user={data.user} hasPendingCertificate={data.hasPendingCertificate} />
+            <CourseView
+                course={data.course}
+                user={data.user}
+                hasPendingCertificate={data.hasPendingCertificate}
+                hasPendingAccessRequest={data.hasPendingAccessRequest}
+            />
         </main>
     );
 }

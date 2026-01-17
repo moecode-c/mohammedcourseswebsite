@@ -12,13 +12,15 @@ interface CourseViewProps {
     course: any;
     user: any;
     hasPendingCertificate?: boolean;
+    hasPendingAccessRequest?: boolean;
 }
 
-export function CourseView({ course, user, hasPendingCertificate = false }: CourseViewProps) {
+export function CourseView({ course, user, hasPendingCertificate = false, hasPendingAccessRequest = false }: CourseViewProps) {
     const [currentSection, setCurrentSection] = useState(course.sections[0]);
     const [completedSections, setCompletedSections] = useState<string[]>(user.completedSections || []);
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [xpGained, setXpGained] = useState<number | null>(null);
+    const [isPendingAccess, setIsPendingAccess] = useState(hasPendingAccessRequest);
 
     // Payment Form State
     const [paymentForm, setPaymentForm] = useState({ fullName: "", phoneNumber: "", notes: "" });
@@ -69,6 +71,7 @@ export function CourseView({ course, user, hasPendingCertificate = false }: Cour
 
             if (res.ok) {
                 setPaymentStatus("success");
+                setIsPendingAccess(true); // Set local pending state
                 setTimeout(() => {
                     setShowUnlockModal(false);
                     setPaymentStatus("idle");
@@ -189,7 +192,16 @@ export function CourseView({ course, user, hasPendingCertificate = false }: Cour
                         <Lock className="w-20 h-20 text-slate-600 mb-6" />
                         <h2 className="text-3xl font-heading mb-4">ACCESS DENIED</h2>
                         <p className="max-w-md text-slate-400 mb-8">This mission requires clearance level: PAID. Please submit a request to unlock.</p>
-                        <GameButton size="lg" onClick={() => setShowUnlockModal(true)}>REQUEST ACCESS</GameButton>
+
+                        {/* Pending Request Indicator */}
+                        {isPendingAccess ? (
+                            <div className="flex flex-col items-center gap-2 max-w-md mx-auto p-4 bg-yellow-500/10 border border-yellow-500/50 rounded">
+                                <h3 className="text-yellow-500 font-heading">VERIFICATION PENDING</h3>
+                                <p className="text-slate-400 text-sm">Your payment is being verified by an admin. You will gain access shortly.</p>
+                            </div>
+                        ) : (
+                            <GameButton size="lg" onClick={() => setShowUnlockModal(true)}>REQUEST ACCESS</GameButton>
+                        )}
                     </div>
                 ) : (
                     <>
@@ -203,10 +215,25 @@ export function CourseView({ course, user, hasPendingCertificate = false }: Cour
                                     <div className="flex-grow flex flex-col items-center justify-center bg-black/30 border border-slate-700 rounded p-8">
                                         <Lock className="w-16 h-16 text-arcade mb-4" />
                                         <h3 className="text-2xl font-heading text-arcade mb-2">RESTRICTED AREA</h3>
-                                        <p className="text-slate-400 mb-6 text-center">To access this stage, you must unlock the full course.</p>
-                                        <GameButton variant="secondary" onClick={() => setShowUnlockModal(true)}>
-                                            UNLOCK NOW
-                                        </GameButton>
+                                        {/* Improved Price Display */}
+                                        <div className="flex flex-col items-center gap-2 mb-6">
+                                            <span className="text-slate-400">Unlock Full Access for Only</span>
+                                            <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">
+                                                {course.isFree ? "FREE" : `${course.price} EGP`}
+                                            </span>
+                                        </div>
+                                        <p className="text-slate-400 mb-6 text-center max-w-sm">To access this stage and the rest of the mission, you must unlock the full course with a one-time payment.</p>
+
+                                        {isPendingAccess ? (
+                                            <div className="flex flex-col items-center gap-2 max-w-md mx-auto p-4 bg-yellow-500/10 border border-yellow-500/50 rounded">
+                                                <h3 className="text-yellow-500 font-heading">VERIFICATION PENDING</h3>
+                                                <p className="text-slate-400 text-sm">Access request submitted. Please wait for admin approval.</p>
+                                            </div>
+                                        ) : (
+                                            <GameButton variant="secondary" size="lg" onClick={() => setShowUnlockModal(true)} className="animate-pulse shadow-[0_0_20px_var(--color-secondary)]">
+                                                UNLOCK NOW
+                                            </GameButton>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex-grow">
@@ -219,29 +246,32 @@ export function CourseView({ course, user, hasPendingCertificate = false }: Cour
                                                     return (
                                                         <>
                                                             {currentSection.videoUrl && (
-                                                                <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden relative group select-none" onContextMenu={(e) => e.preventDefault()}>
-                                                                    {/* Invisible overlay to prevent clicking through to YouTube */}
-                                                                    <div className="absolute inset-0 z-10 pointer-events-none" />
+                                                                <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden relative group select-none">
+
                                                                     {(() => {
                                                                         let videoId = "";
                                                                         try {
-                                                                            if (currentSection.videoUrl.includes("v=")) {
-                                                                                videoId = currentSection.videoUrl.split("v=")[1].split("&")[0];
-                                                                            } else if (currentSection.videoUrl.includes("youtu.be/")) {
-                                                                                videoId = currentSection.videoUrl.split("youtu.be/")[1].split("?")[0];
-                                                                            } else if (currentSection.videoUrl.includes("embed/")) {
-                                                                                videoId = currentSection.videoUrl.split("embed/")[1].split("?")[0];
+                                                                            const url = currentSection.videoUrl;
+                                                                            if (url.includes("v=")) {
+                                                                                videoId = url.split("v=")[1].split("&")[0];
+                                                                            } else if (url.includes("youtu.be/")) {
+                                                                                videoId = url.split("youtu.be/")[1].split("?")[0];
+                                                                            } else if (url.includes("embed/")) {
+                                                                                videoId = url.split("embed/")[1].split("?")[0];
                                                                             }
-                                                                        } catch (e) { }
+                                                                            // Clean any trailing params just in case
+                                                                            if (videoId.indexOf("?") !== -1) videoId = videoId.split("?")[0];
+                                                                            if (videoId.indexOf("/") !== -1) videoId = videoId.split("/")[0];
+                                                                        } catch (e) { console.error("Video parse error", e); }
 
                                                                         if (videoId) {
                                                                             return (
                                                                                 <iframe
-                                                                                    src={`https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0`}
+                                                                                    src={`https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0`}
                                                                                     title={currentSection.title}
-                                                                                    className="w-full h-full pointer-events-auto"
+                                                                                    className="w-full h-full"
                                                                                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                                                                    referrerPolicy="no-referrer"
+                                                                                    allowFullScreen
                                                                                 />
                                                                             );
                                                                         } else {
@@ -316,7 +346,10 @@ export function CourseView({ course, user, hasPendingCertificate = false }: Cour
             {showUnlockModal && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <GameCard className="w-full max-w-lg bg-slate-900 border-primary shadow-[0_0_50px_rgba(57,255,20,0.1)]">
-                        <h3 className="text-2xl font-heading text-primary mb-2">UNLOCK ACCESS</h3>
+                        <h3 className="text-2xl font-heading text-primary mb-2 text-center">UNLOCK ACCESS</h3>
+                        <div className="text-center mb-6">
+                            <span className="text-4xl font-heading text-white">{course.price} EGP</span>
+                        </div>
                         <p className="text-slate-400 text-sm mb-6 font-mono">
                             To unlock this mission pack, please transfer the fee via Instapay and submit your details below. An admin will verify your clearance.
                         </p>

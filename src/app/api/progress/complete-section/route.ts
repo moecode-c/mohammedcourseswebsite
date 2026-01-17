@@ -44,12 +44,30 @@ export async function POST(req: Request) {
         // Award XP
         const xpResult = await awardXP(payload.userId, 50, `completed-section-${sectionId}`);
 
-        // Check if course is fully completed (optional logic here or separate trigger)
-        // For now just return the section result
+        // Check if course is fully completed
+        const course = await mongoose.models.Course.findById(courseId).populate("sections");
+        let courseCompleted = false;
+
+        if (course && course.sections) {
+            const allSectionIds = course.sections.map((s: any) => s._id.toString());
+            // We just pushed the current section, so we check if all are now in the user's list
+            // Re-fetch user or check against the modified array. The user object is modifying in memory.
+            const userCompletedIds = user.completedSections.map((id: any) => id.toString());
+
+            const allDone = allSectionIds.every((id: string) => userCompletedIds.includes(id));
+
+            if (allDone) {
+                if (!user.completedCourses.includes(courseId)) {
+                    user.completedCourses.push(courseId);
+                    await awardXP(payload.userId, 500, `completed-course-${courseId}`); // Bonus XP for course completion
+                    courseCompleted = true;
+                }
+            }
+        }
 
         await user.save();
 
-        return NextResponse.json({ success: true, xpResult });
+        return NextResponse.json({ success: true, xpResult, courseCompleted });
     } catch (error) {
         console.error("Complete Section Error:", error);
         return NextResponse.json(

@@ -37,7 +37,7 @@ export async function POST(req: Request) {
             role: userRole,
         });
 
-        const token = signToken({ userId: user._id as string, role: user.role });
+        const token = signToken({ userId: user._id as unknown as string, role: user.role });
 
         (await cookies()).set("token", token, {
             httpOnly: true,

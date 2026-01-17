@@ -8,6 +8,7 @@ export interface IAccessRequest extends Document {
         fullName: string;
         phoneNumber: string; // WhatsApp
         transactionNotes?: string;
+        amount: number;
     };
     adminNotes?: string;
     createdAt: Date;
@@ -27,6 +28,7 @@ const AccessRequestSchema: Schema<IAccessRequest> = new Schema(
             fullName: { type: String, required: true },
             phoneNumber: { type: String, required: true },
             transactionNotes: { type: String },
+            amount: { type: Number, required: true },
         },
         adminNotes: { type: String },
     },

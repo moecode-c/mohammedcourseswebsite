@@ -22,7 +22,7 @@ export async function GET(req: Request) {
 
         await dbConnect();
 
-        const requests = await AccessRequest.find({ status: "pending" })
+        const requests = await AccessRequest.find({})
             .populate("userId", "name email")
             .populate("courseId", "title price")
             .sort({ createdAt: 1 });

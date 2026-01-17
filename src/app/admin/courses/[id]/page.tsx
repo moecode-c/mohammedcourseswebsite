@@ -25,6 +25,7 @@ interface Course {
     isFree: boolean;
     isFeatured: boolean;
     thumbnail: string;
+    languages: string[];
     sections: Section[];
 }
 
@@ -44,11 +45,20 @@ export default function EditCoursePage() {
     const [editingSection, setEditingSection] = useState<Section | null>(null);
     const [editForm, setEditForm] = useState({ title: "", content: "", videoUrl: "", linkUrl: "", type: "text", isFree: false });
 
+    // Language Input Buffer
+    const [languageInput, setLanguageInput] = useState("");
+
     useEffect(() => {
         if (courseId) {
             fetchCourse();
         }
     }, [courseId]);
+
+    useEffect(() => {
+        if (course) {
+            setLanguageInput(course.languages?.join(", ") || "");
+        }
+    }, [course]);
 
     const fetchCourse = async () => {
         try {
@@ -95,7 +105,10 @@ export default function EditCoursePage() {
                     isFree: course.isFree,
                     isFeatured: course.isFeatured,
                     difficulty: course.difficulty,
-                    thumbnail: course.thumbnail
+                    thumbnail: course.thumbnail,
+                    difficulty: course.difficulty,
+                    thumbnail: course.thumbnail,
+                    languages: languageInput.split(",").map(s => s.trim()).filter(Boolean)
                 }),
             });
             if (res.ok) {
@@ -241,6 +254,16 @@ export default function EditCoursePage() {
                                         <option value="intermediate">Intermediate</option>
                                         <option value="advanced">Advanced</option>
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label className="text-xs text-slate-500 font-mono mb-1 block">LANGUAGES (Comma Separated)</label>
+                                    <input
+                                        className="w-full bg-slate-950 border border-slate-700 p-2 text-white"
+                                        placeholder="e.g. JavaScript, React, Node.js"
+                                        value={languageInput}
+                                        onChange={e => setLanguageInput(e.target.value)}
+                                    />
                                 </div>
 
                                 <div>

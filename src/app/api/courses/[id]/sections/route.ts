@@ -23,11 +23,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
 
         const body = await req.json();
-        const { title, content, videoUrl, isFree, order } = body;
+        const { title, content, type, videoUrl, linkUrl, isFree, order } = body;
 
-        if (!title || !content) {
-            return NextResponse.json({ error: "Title and Content are required" }, { status: 400 });
+        if (!title) {
+            return NextResponse.json({ error: "Title is required" }, { status: 400 });
         }
+
+        // Validation based on type
+        if (type === "text" && !content) return NextResponse.json({ error: "Content required for text" }, { status: 400 });
+        if (type === "video" && !videoUrl) return NextResponse.json({ error: "Video URL required" }, { status: 400 });
+        if (type === "link" && !linkUrl) return NextResponse.json({ error: "Link URL required" }, { status: 400 });
 
         await dbConnect();
 
@@ -35,8 +40,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const section = await Section.create({
             courseId: id,
             title,
-            content,
+            content: content || "",
+            type: type || "text",
             videoUrl,
+            linkUrl,
             isFree: isFree || false,
             order: order || 1, // Default order, ideally should fetch max order + 1
         });

@@ -58,7 +58,7 @@ export default async function Home() {
             <div className="max-w-6xl mx-auto px-6">
               <div className="flex items-center gap-3 mb-10 justify-center">
                 <Star className="w-8 h-8 text-yellow-500 animate-spin-slow" />
-                <h2 className="text-3xl md:text-4xl font-heading text-white text-shadow-sm">FEATURED MISSIONS</h2>
+                <h2 className="text-3xl md:text-4xl font-heading text-white text-shadow-sm">FEATURED COURSES</h2>
                 <Star className="w-8 h-8 text-yellow-500 animate-spin-slow" />
               </div>
 

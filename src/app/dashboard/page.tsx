@@ -165,9 +165,6 @@ export default async function DashboardPage() {
 
                                     <GameCard className="h-full flex flex-col relative z-10 bg-slate-900/90 backdrop-blur">
                                         <div className="aspect-video bg-slate-800 mb-4 rounded border border-slate-700 overflow-hidden relative">
-                                            <div className="absolute inset-0 flex items-center justify-center text-slate-600 font-mono text-xs">
-                                                [NO_SIGNAL]
-                                            </div>
                                             {course.thumbnail && (
                                                 <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
                                             )}
@@ -182,9 +179,9 @@ export default async function DashboardPage() {
                                         <div className="flex justify-between items-start mb-2">
                                             <h3 className="font-heading text-lg text-primary">{course.title}</h3>
                                             {course.isFree ? (
-                                                <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded font-mono">FREE</span>
+                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono">FREE PLAY</span>
                                             ) : (
-                                                <span className="text-xs bg-arcade/20 text-arcade px-2 py-1 rounded font-mono">{course.price} EGP</span>
+                                                <span className="text-xl font-bold font-heading text-arcade">{course.price} EGP</span>
                                             )}
                                         </div>
 

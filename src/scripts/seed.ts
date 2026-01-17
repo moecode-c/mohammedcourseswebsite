@@ -62,6 +62,7 @@ async function seed() {
         difficulty: "beginner",
         price: 0,
         isFree: true,
+        languages: ["HTML", "CSS"],
     });
 
     const paidCourse = await Course.create({
@@ -72,6 +73,7 @@ async function seed() {
         price: 500,
         isFree: false,
         isFeatured: true,
+        languages: ["React", "TypeScript", "Node.js"],
     });
 
     console.log("📚 Courses Created");
