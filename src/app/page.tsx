@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image"; // Added import
 import { GameButton } from "@/components/ui/GameButton";
 import { GameCard } from "@/components/ui/GameCard";
 import { Navbar } from "@/components/ui/Navbar";
@@ -51,9 +52,11 @@ export default function Home() {
           <div className="relative group flex-shrink-0">
             <div className="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-lg opacity-75 blur group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
             <div className="relative w-64 h-64 md:w-80 md:h-80 bg-slate-950 rounded border-2 border-slate-700 overflow-hidden">
-              <img
+              <Image // Changed img to Image
                 src="/me.png"
                 alt="Instructor Profile"
+                width={320} // Added width
+                height={320} // Added height
                 className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
               />
               <div className="absolute inset-0 bg-primary/10 mix-blend-overlay pointer-events-none" />

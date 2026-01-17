@@ -150,12 +150,38 @@ export function CourseView({ course, user }: CourseViewProps) {
                                     </div>
                                 ) : (
                                     <div className="flex-grow">
-                                        {/* Video Player Placeholder */}
+                                        {/* Video Player */}
                                         {currentSection.videoUrl && (
-                                            <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 flex items-center justify-center relative overflow-hidden group">
-                                                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity" />
-                                                {/* If real youtube, embed here. For now text. */}
-                                                <p className="font-mono text-primary animate-pulse">[VIDEO FEED LINKED: {currentSection.videoUrl}]</p>
+                                            <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden relative group">
+                                                {(() => {
+                                                    // Simple helper to extract ID
+                                                    let videoId = "";
+                                                    try {
+                                                        if (currentSection.videoUrl.includes("v=")) {
+                                                            videoId = currentSection.videoUrl.split("v=")[1].split("&")[0];
+                                                        } else if (currentSection.videoUrl.includes("youtu.be/")) {
+                                                            videoId = currentSection.videoUrl.split("youtu.be/")[1].split("?")[0];
+                                                        }
+                                                    } catch (e) { }
+
+                                                    if (videoId) {
+                                                        return (
+                                                            <iframe
+                                                                src={`https://www.youtube.com/embed/${videoId}`}
+                                                                title={currentSection.title}
+                                                                className="w-full h-full"
+                                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                allowFullScreen
+                                                            />
+                                                        );
+                                                    } else {
+                                                        return (
+                                                            <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+                                                                Invalid Video Link
+                                                            </div>
+                                                        );
+                                                    }
+                                                })()}
                                             </div>
                                         )}
 

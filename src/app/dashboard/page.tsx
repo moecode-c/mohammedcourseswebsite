@@ -1,4 +1,19 @@
-import { Navbar } from "@/components/ui/Navbar";
+import Image from "next/image"; // Added import
+
+// ... (existing imports)
+
+// ...
+
+{
+    course.thumbnail && (
+        <Image
+            src={course.thumbnail}
+            alt={course.title}
+            fill
+            className="object-cover"
+        />
+    )
+}
 import { GameCard } from "@/components/ui/GameCard";
 import { GameButton } from "@/components/ui/GameButton";
 import Link from "next/link";
