@@ -86,6 +86,7 @@ async function getCourseData(id: string) {
             content: section.content,
             videoUrl: section.videoUrl,
             linkUrl: section.linkUrl, // Pass Link URL
+            questions: section.questions, // Pass Quiz Questions
             isLocked: false,
         };
     });
@@ -97,7 +98,12 @@ async function getCourseData(id: string) {
             sections,
             isLocked: !hasFullAccess && !course.isFree
         },
-        user: user ? { ...user, _id: (user as any)._id.toString(), completedSections: (user as any).completedSections.map((id: any) => id.toString()) } : null,
+        user: user ? {
+            ...user,
+            _id: (user as any)._id.toString(),
+            completedSections: (user as any).completedSections.map((id: any) => id.toString()),
+            answeredQuestions: (user as any).answeredQuestions || []
+        } : null,
         hasPendingCertificate,
         hasPendingAccessRequest
     }));

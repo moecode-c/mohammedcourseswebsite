@@ -4,6 +4,7 @@ import { GameButton } from "@/components/ui/GameButton";
 import Link from "next/link";
 import Image from "next/image";
 import { Code, Cpu, Database, Globe, Rocket, Terminal, User, Zap } from "lucide-react";
+import ModelViewerWrapper from "@/components/ui/ModelViewerWrapper";
 
 export default function AboutPage() {
     return (
@@ -13,7 +14,6 @@ export default function AboutPage() {
             {/* Hero Section */}
             <section className="relative w-full py-20 px-6 overflow-hidden flex flex-col items-center text-center">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 to-slate-950 z-0" />
-                <div className="absolute top-0 left-0 w-full h-full bg-[url('/grid-pattern.png')] opacity-10 pointer-events-none z-0" />
 
                 <div className="z-10 animate-fade-in-up max-w-4xl mx-auto">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-mono uppercase tracking-widest mb-6">
@@ -36,17 +36,12 @@ export default function AboutPage() {
                 <div className="relative group animate-fade-in-up h-[400px]">
                     <div className="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-xl opacity-75 blur-lg group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                     <div className="relative h-full bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl flex items-center justify-center">
-                        {/* @ts-ignore */}
-                        <model-viewer
+                        <ModelViewerWrapper
                             src="/3dmodels/dualshock_ps1.glb"
                             alt="Retro Controller 3D Model"
-                            auto-rotate
-                            camera-controls
                             style={{ width: '100%', height: '100%', backgroundColor: '#0f172a' }}
-                            shadow-intensity="1"
-                        >
-                            {/* @ts-ignore */}
-                        </model-viewer>
+                            cameraOrbit="0deg 45deg 105%"
+                        />
                     </div>
                 </div>
 
@@ -113,13 +108,15 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            <section className="py-24 text-center px-6">
+            <section className="py-24 text-center px-6 flex flex-col items-center">
                 <h2 className="text-4xl font-heading text-white mb-8">READY TO START YOUR REQUEST?</h2>
-                <Link href="/dashboard">
+                <Link href="/dashboard" className="mb-8">
                     <GameButton size="lg" className="px-12 py-6 text-xl animate-pulse">
                         INITIALIZE SEQUENCE
                     </GameButton>
                 </Link>
+
+                <img src="/gifs/sitting.gif" alt="Relaxing" className="w-64 h-auto opacity-80" />
             </section>
 
             <Footer />

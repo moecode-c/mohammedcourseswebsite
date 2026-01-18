@@ -70,7 +70,7 @@ export default function CoursesClient({ courses }: CoursesClientProps) {
                                     </Link>
 
                                     <div className="flex flex-col flex-grow">
-                                        <div className="flex justify-between items-start mb-2">
+                                        <div className="flex flex-col md:flex-row justify-between items-start mb-2 gap-2 md:gap-0">
                                             <div>
                                                 <h3 className="font-heading text-lg text-primary group-hover:text-white transition-colors">
                                                     <Link href={`/courses/${course._id}`}>{course.title}</Link>
@@ -86,9 +86,9 @@ export default function CoursesClient({ courses }: CoursesClientProps) {
                                                 )}
                                             </div>
                                             {course.isFree ? (
-                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono whitespace-nowrap">FREE</span>
+                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono whitespace-nowrap self-start md:self-auto">FREE</span>
                                             ) : (
-                                                <span className="text-lg md:text-xl font-bold font-heading text-arcade whitespace-nowrap">{course.price} EGP</span>
+                                                <span className="text-lg md:text-xl font-bold font-press-start text-arcade whitespace-nowrap self-start md:self-auto">{course.price} EGP</span>
                                             )}
                                         </div>
 

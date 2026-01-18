@@ -17,9 +17,12 @@ export default async function CoursesPage() {
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-6 py-10">
-                <header className="mb-12">
-                    <h1 className="text-4xl font-heading mb-4 text-shadow text-center md:text-left">ALL COURSES</h1>
-                    <p className="font-mono text-slate-400 text-center md:text-left">Explore our library of knowledge. Hack the planet.</p>
+                <header className="mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div>
+                        <h1 className="text-4xl font-heading mb-4 text-shadow text-center md:text-left">ALL COURSES</h1>
+                        <p className="font-mono text-slate-400 text-center md:text-left">Explore our library of knowledge. Hack the planet.</p>
+                    </div>
+                    <img src="/gifs/sitting2.gif" alt="Sitting" className="w-64 md:w-80 h-auto" />
                 </header>
 
                 <CoursesClient courses={courses} />

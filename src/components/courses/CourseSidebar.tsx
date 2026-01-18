@@ -34,7 +34,7 @@ export function CourseSidebar({
 
             {/* Sidebar Container */}
             <div className={`
-                fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-700 p-6 shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-auto md:w-64 md:shadow-none md:border-r-0 md:bg-transparent md:p-0
+                fixed inset-y-0 left-0 z-[60] w-72 bg-slate-900 border-r border-slate-700 p-6 shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-auto md:w-64 md:shadow-none md:border-r-0 md:bg-transparent md:p-0 overflow-y-auto
                 ${isOpen ? "translate-x-0" : "-translate-x-full"}
             `}>
                 <div className="flex justify-between items-center mb-8 md:hidden">

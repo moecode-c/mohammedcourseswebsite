@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { GameButton } from "@/components/ui/GameButton";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { ArrowLeft, ChevronUp, ChevronDown, Edit, Trash2, Save, Plus } from "lucide-react";
+import { ArrowLeft, ChevronUp, ChevronDown, Edit, Trash2, Save, Plus, X } from "lucide-react";
+
+interface Question {
+    questionText: string;
+    options: string[];
+    correctOptionIndex: number;
+}
 
 interface Section {
     _id: string;
@@ -14,6 +20,7 @@ interface Section {
     videoUrl?: string;
     linkUrl?: string;
     isFree: boolean;
+    questions?: Question[];
 }
 
 interface Course {
@@ -22,6 +29,8 @@ interface Course {
     difficulty: string;
     description: string;
     price: number;
+    discountPrice?: number;
+    discountActive: boolean;
     isFree: boolean;
     isFeatured: boolean;
     thumbnail: string;
@@ -43,7 +52,15 @@ export default function EditCoursePage() {
 
     // Edit Section State
     const [editingSection, setEditingSection] = useState<Section | null>(null);
-    const [editForm, setEditForm] = useState({ title: "", content: "", videoUrl: "", linkUrl: "", type: "text", isFree: false });
+    const [editForm, setEditForm] = useState<{
+        title: string;
+        content: string;
+        videoUrl: string;
+        linkUrl: string;
+        type: string;
+        isFree: boolean;
+        questions: Question[];
+    }>({ title: "", content: "", videoUrl: "", linkUrl: "", type: "text", isFree: false, questions: [] });
 
     // Language Input Buffer
     const [languageInput, setLanguageInput] = useState("");
@@ -193,7 +210,8 @@ export default function EditCoursePage() {
             videoUrl: section.videoUrl || "",
             linkUrl: section.linkUrl || "",
             type: section.type || "text",
-            isFree: section.isFree
+            isFree: section.isFree,
+            questions: section.questions || []
         });
     };
 
@@ -287,6 +305,34 @@ export default function EditCoursePage() {
                                             <span className="text-sm">Free Access</span>
                                         </label>
                                     </div>
+                                </div>
+
+                                {/* Discount Section */}
+                                <div className="border border-slate-700 bg-slate-950/50 p-4 rounded space-y-3">
+                                    <label className="flex items-center gap-2 text-white cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={course.discountActive || false}
+                                            onChange={e => setCourse({ ...course, discountActive: e.target.checked })}
+                                            disabled={course.isFree}
+                                        />
+                                        <span className="text-sm text-yellow-400 font-bold">🏷️ Enable Discount</span>
+                                    </label>
+                                    {course.discountActive && !course.isFree && (
+                                        <div>
+                                            <label className="text-xs text-slate-500 font-mono mb-1 block">DISCOUNT PRICE (EGP)</label>
+                                            <input
+                                                type="number"
+                                                className="w-full bg-slate-950 border border-yellow-500/50 p-2 text-yellow-400"
+                                                placeholder="Sale price..."
+                                                value={course.discountPrice || ""}
+                                                onChange={e => setCourse({ ...course, discountPrice: Number(e.target.value) || undefined })}
+                                            />
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                Original: {course.price} EGP → Sale: {course.discountPrice || 0} EGP
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -392,11 +438,91 @@ export default function EditCoursePage() {
                                         <textarea placeholder="Description" className="w-full bg-slate-950 border border-slate-700 p-2 text-white h-24" value={editForm.content} onChange={e => setEditForm({ ...editForm, content: e.target.value })} />
                                     </>
                                 )}
-                                {editForm.type === "link" && (
-                                    <>
-                                        <input placeholder="External Link" className="w-full bg-slate-950 border border-slate-700 p-2 text-white" value={editForm.linkUrl} onChange={e => setEditForm({ ...editForm, linkUrl: e.target.value })} />
-                                        <textarea placeholder="Description" className="w-full bg-slate-950 border border-slate-700 p-2 text-white h-24" value={editForm.content} onChange={e => setEditForm({ ...editForm, content: e.target.value })} />
-                                    </>
+                                {editForm.type === "quiz" && (
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-white font-bold">Questions</label>
+                                            <GameButton type="button" size="sm" onClick={() => setEditForm({ ...editForm, questions: [...editForm.questions, { questionText: "", options: ["", ""], correctOptionIndex: 0 }] })}>
+                                                <Plus className="w-3 h-3 mr-1" /> ADD QUESTION
+                                            </GameButton>
+                                        </div>
+                                        <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+                                            {editForm.questions.map((q, qIdx) => (
+                                                <div key={qIdx} className="bg-slate-950 p-4 rounded border border-slate-700">
+                                                    <div className="flex justify-between mb-2">
+                                                        <span className="text-sm text-slate-400">Question {qIdx + 1}</span>
+                                                        <button type="button" onClick={() => {
+                                                            const newQs = [...editForm.questions];
+                                                            newQs.splice(qIdx, 1);
+                                                            setEditForm({ ...editForm, questions: newQs });
+                                                        }} className="text-red-500 hover:text-red-400">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    <input
+                                                        placeholder="Question Text"
+                                                        className="w-full bg-slate-900 border border-slate-700 p-2 text-white mb-2"
+                                                        value={q.questionText}
+                                                        onChange={e => {
+                                                            const newQs = [...editForm.questions];
+                                                            newQs[qIdx].questionText = e.target.value;
+                                                            setEditForm({ ...editForm, questions: newQs });
+                                                        }}
+                                                    />
+                                                    <div className="space-y-2 pl-4 border-l-2 border-slate-800">
+                                                        {q.options.map((opt, oIdx) => (
+                                                            <div key={oIdx} className="flex items-center gap-2">
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`correct-${qIdx}`}
+                                                                    checked={q.correctOptionIndex === oIdx}
+                                                                    onChange={() => {
+                                                                        const newQs = [...editForm.questions];
+                                                                        newQs[qIdx].correctOptionIndex = oIdx;
+                                                                        setEditForm({ ...editForm, questions: newQs });
+                                                                    }}
+                                                                />
+                                                                <input
+                                                                    placeholder={`Option ${oIdx + 1}`}
+                                                                    className="flex-1 bg-slate-900 border border-slate-800 p-1 text-sm text-white"
+                                                                    value={opt}
+                                                                    onChange={e => {
+                                                                        const newQs = [...editForm.questions];
+                                                                        newQs[qIdx].options[oIdx] = e.target.value;
+                                                                        setEditForm({ ...editForm, questions: newQs });
+                                                                    }}
+                                                                />
+                                                                {q.options.length > 2 && (
+                                                                    <button type="button" onClick={() => {
+                                                                        const newQs = [...editForm.questions];
+                                                                        newQs[qIdx].options.splice(oIdx, 1);
+                                                                        // Adjust correct index if needed
+                                                                        if (newQs[qIdx].correctOptionIndex >= oIdx && newQs[qIdx].correctOptionIndex > 0) {
+                                                                            newQs[qIdx].correctOptionIndex = Math.min(newQs[qIdx].correctOptionIndex, newQs[qIdx].options.length - 1);
+                                                                        }
+                                                                        setEditForm({ ...editForm, questions: newQs });
+                                                                    }} className="text-red-500 hover:text-red-400 text-xs">
+                                                                        <X className="w-3 h-3" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            className="text-xs text-primary hover:underline mt-2 flex items-center gap-1"
+                                                            onClick={() => {
+                                                                const newQs = [...editForm.questions];
+                                                                newQs[qIdx].options.push("");
+                                                                setEditForm({ ...editForm, questions: newQs });
+                                                            }}
+                                                        >
+                                                            <Plus className="w-3 h-3" /> Add Option
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
 
                                 <div className="flex justify-between items-center pt-4">

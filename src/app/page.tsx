@@ -8,6 +8,7 @@ import { Gamepad2, Brain, Trophy, Ghost, Star } from "lucide-react";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import Squares from "@/components/ui/Squares";
+import ModelViewerWrapper from "@/components/ui/ModelViewerWrapper";
 
 export default async function Home() {
   await dbConnect();
@@ -57,7 +58,7 @@ export default async function Home() {
             </Link>
           </div>
 
-          <img src="/gifs/rocket.gif" alt="Rocket Launch" className="w-24 h-24 object-contain animate-bounce-slow" />
+          <img src="/gifs/rocket.gif" alt="Rocket Launch" className="w-64 h-64 object-contain animate-bounce-slow" />
         </div>
       </section>
 
@@ -110,18 +111,19 @@ export default async function Home() {
 
       <section className="w-full py-24 bg-slate-900 border-y border-slate-800 relative shadow-2xl z-10">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
-          {/* Image Container with Glitch Effect Border */}
+          {/* 3D Model Container with Glitch Effect Border */}
           <div className="relative group flex-shrink-0">
             <div className="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-lg opacity-75 blur group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-            <div className="relative w-64 h-64 md:w-80 md:h-80 bg-slate-950 rounded border-2 border-slate-700 overflow-hidden">
-              <Image // Changed img to Image
-                src="/me.png"
-                alt="Instructor Profile"
-                width={320} // Added width
-                height={320} // Added height
-                className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
+            <div className="relative w-80 h-80 md:w-[450px] md:h-[450px] bg-slate-950 rounded border-2 border-slate-700 overflow-hidden">
+              <ModelViewerWrapper
+                src="/3dmodels/pacman_arcade__animation.glb"
+                alt="Pacman Arcade"
+                autoRotate={false}
+                cameraControls={true}
+                cameraOrbit="0deg 75deg 105%"
+                animationName="pac man"
+                style={{ width: '100%', height: '100%' }}
               />
-              <div className="absolute inset-0 bg-primary/10 mix-blend-overlay pointer-events-none" />
             </div>
           </div>
 
@@ -167,7 +169,7 @@ export default async function Home() {
         <GameCard title="Earn Rewards">
           <Trophy className="w-12 h-12 text-arcade mb-4" />
           <p className="text-slate-400 leading-relaxed">
-            Gain XP for every action. Level up your profile and show off your badges to the community.
+            Gain XP for every action. Level up your profile and show off your achievements to the community.
           </p>
         </GameCard>
 

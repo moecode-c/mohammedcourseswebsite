@@ -7,6 +7,7 @@ import { GameInput } from "@/components/ui/GameInput";
 import { Lock, Play, CheckCircle, Smartphone, Award } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { XPBar } from "@/components/game/XPBar";
+import { QuizView } from "@/components/game/QuizView";
 
 interface CourseViewProps {
     course: any;
@@ -309,10 +310,15 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                     );
                                                 case "quiz":
                                                     return (
-                                                        <div className="p-8 border border-slate-800 bg-slate-900 rounded text-center">
-                                                            <h3 className="text-xl font-heading text-primary mb-4">QUIZ MODULE</h3>
-                                                            <p className="text-slate-400">Quiz functionality is currently under development.</p>
-                                                        </div>
+                                                        <QuizView
+                                                            sectionId={currentSection._id}
+                                                            questions={currentSection.questions || []}
+                                                            answeredQuestions={user.answeredQuestions || []}
+                                                            onXPGain={(amount) => {
+                                                                setXpGained(amount);
+                                                                setTimeout(() => setXpGained(null), 3000);
+                                                            }}
+                                                        />
                                                     );
                                                 default: // text
                                                     return (

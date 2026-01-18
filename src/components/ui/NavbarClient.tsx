@@ -5,7 +5,7 @@ import { useState } from "react";
 import { GameButton } from "@/components/ui/GameButton";
 import { LevelBadge } from "@/components/game/LevelBadge";
 import { XPBar } from "@/components/game/XPBar";
-import { Menu, X, Home, Map, BookOpen, User, Shield, Search } from "lucide-react";
+import { Menu, X, Home, Map, BookOpen, User, Shield, Search, Trophy } from "lucide-react";
 
 interface NavbarClientProps {
     user: any; // Using any for simplicity as User type is complex to import here, but ideally should be typed
@@ -36,7 +36,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
                 </Link>
 
                 {/* Desktop Navigation */}
-                <div className="hidden md:flex gap-8 items-center">
+                <div className="hidden lg:flex gap-8 items-center">
                     <Link href="/" className="font-mono text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
                         <Home className="w-4 h-4" /> HQ
                     </Link>
@@ -58,18 +58,20 @@ export function NavbarClient({ user }: NavbarClientProps) {
                         </div>
                     </div>
 
+                    <Link href="/leaderboard" className="font-mono text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                        <Trophy className="w-4 h-4" /> LEADERBOARD
+                    </Link>
                     <Link href="/about" className="font-mono text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
                         <BookOpen className="w-4 h-4" /> TUTORIAL
                     </Link>
                 </div>
 
                 {/* User / Login Section (Desktop) */}
-                <div className="hidden md:flex items-center gap-6">
+                <div className="hidden lg:flex items-center gap-6">
                     {user ? (
                         <>
-                            <div className="flex flex-col w-40">
+                            <div className="flex flex-col w-32">
                                 <XPBar xp={user.xp} showLabels={false} />
-                                <span className="text-[10px] text-slate-500 font-mono text-right">{user.xp} XP</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="font-mono text-sm uppercase text-slate-300 truncate max-w-[100px]">
@@ -100,13 +102,13 @@ export function NavbarClient({ user }: NavbarClientProps) {
                 </div>
 
                 {/* Mobile Hamburger */}
-                <button onClick={toggleMenu} className="md:hidden text-white z-50 relative p-2 focus:outline-none">
+                <button onClick={toggleMenu} className="lg:hidden text-white z-50 relative p-2 focus:outline-none">
                     {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
             </div>
 
             {/* Mobile Sidebar / Drawer */}
-            <div className={`fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-40 transition-transform duration-300 md:hidden flex flex-col pt-24 px-6 gap-8 ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
+            <div className={`fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-40 transition-transform duration-300 lg:hidden flex flex-col pt-24 px-6 gap-8 overflow-y-auto ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
 
                 {/* Mobile Links */}
                 <div className="flex flex-col gap-6">
@@ -120,7 +122,10 @@ export function NavbarClient({ user }: NavbarClientProps) {
                     <Link href="/courses" onClick={toggleMenu} className="text-xl font-heading text-white hover:text-primary border-b border-slate-800 pb-4 flex items-center gap-4 pl-4">
                         <Search className="w-5 h-5 text-slate-500" /> BROWSE ALL
                     </Link>
-                    <Link href="/about" onClick={toggleMenu} className="text-2xl font-heading text-white hover:text-primary border-b border-slate-800 pb-4 flex items-center gap-4 mt-4">
+                    <Link href="/leaderboard" onClick={toggleMenu} className="text-2xl font-heading text-white hover:text-primary border-b border-slate-800 pb-4 flex items-center gap-4 mt-4">
+                        <Trophy className="w-6 h-6 text-slate-500" /> LEADERBOARD
+                    </Link>
+                    <Link href="/about" onClick={toggleMenu} className="text-2xl font-heading text-white hover:text-primary border-b border-slate-800 pb-4 flex items-center gap-4">
                         <BookOpen className="w-6 h-6 text-slate-500" /> TUTORIAL
                     </Link>
                 </div>

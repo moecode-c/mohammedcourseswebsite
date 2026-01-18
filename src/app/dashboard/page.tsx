@@ -138,11 +138,12 @@ export default async function DashboardPage() {
                 )}
 
                 {/* My Courses Header */}
+                {/* My Courses Header */}
                 <header className="mb-8 flex flex-col md:flex-row md:items-end gap-4">
                     <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-4xl font-heading mb-2 text-shadow">My Courses</h1>
-                            <img src="/gifs/battle.gif" alt="Battle" className="w-20 h-20 rounded" />
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-4xl font-heading mb-2 text-shadow font-press-start text-2xl md:text-3xl">My Courses</h1>
+                            <img src="/gifs/battle.gif" alt="Battle" className="w-48 h-48 rounded" />
                         </div>
                         <p className="font-mono text-slate-400">Courses you have access to. <Link href="/courses" className="text-primary hover:underline">Browse all courses →</Link></p>
                     </div>
@@ -181,7 +182,7 @@ export default async function DashboardPage() {
                                             )}
                                         </div>
 
-                                        <div className="flex justify-between items-start mb-2">
+                                        <div className="flex flex-col md:flex-row justify-between items-start mb-2 gap-2 md:gap-0">
                                             <div>
                                                 <h3 className="font-heading text-lg text-primary">{course.title}</h3>
                                                 {course.difficulty && (
@@ -194,9 +195,9 @@ export default async function DashboardPage() {
                                                 )}
                                             </div>
                                             {course.isFree ? (
-                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono">FREE PLAY</span>
+                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono self-start md:self-auto">FREE PLAY</span>
                                             ) : (
-                                                <span className="text-lg md:text-xl font-bold font-heading text-arcade">{course.price} EGP</span>
+                                                <span className="text-lg md:text-xl font-bold font-press-start text-arcade self-start md:self-auto">{course.price} EGP</span>
                                             )}
                                         </div>
 

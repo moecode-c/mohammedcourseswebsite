@@ -22,8 +22,6 @@ export function XPBar({ xp, className = "", showLabels = true }: XPBarProps) {
             )}
 
             <div className="h-4 bg-slate-900 border border-slate-700 relative overflow-hidden rounded-sm">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-[url('/grid-tiny.png')] opacity-20" />
 
                 {/* Fill */}
                 <div

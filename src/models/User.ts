@@ -9,7 +9,6 @@ export interface IUser extends Document {
     // Gamification
     xp: number;
     level: number;
-    badges: string[]; // Array of Badge IDs
     streak: {
         count: number;
         lastActiveDate: Date;
@@ -19,6 +18,7 @@ export interface IUser extends Document {
     completedSections: mongoose.Types.ObjectId[];
     completedCourses: mongoose.Types.ObjectId[];
     unlockedCourses: mongoose.Types.ObjectId[]; // For Paid Courses access
+    answeredQuestions: string[]; // Format: "sectionId-questionIndex"
 
     createdAt: Date;
     updatedAt: Date;
@@ -33,7 +33,6 @@ const UserSchema: Schema<IUser> = new Schema(
 
         xp: { type: Number, default: 0 },
         level: { type: Number, default: 1 },
-        badges: [{ type: String }], // Keeping badges as string IDs for simplicity or join with Badge model
         streak: {
             count: { type: Number, default: 0 },
             lastActiveDate: { type: Date, default: Date.now },
@@ -42,6 +41,7 @@ const UserSchema: Schema<IUser> = new Schema(
         completedSections: [{ type: Schema.Types.ObjectId, ref: "Section" }],
         completedCourses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
         unlockedCourses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
+        answeredQuestions: [{ type: String }],
     },
     { timestamps: true }
 );

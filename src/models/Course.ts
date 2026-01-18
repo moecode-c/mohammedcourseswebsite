@@ -8,6 +8,8 @@ export interface ICourse extends Document {
     difficulty: "beginner" | "intermediate" | "advanced";
     languages: string[];
     price: number;
+    discountPrice?: number;
+    discountActive: boolean;
     isFree: boolean;
     isFeatured: boolean;
     sections: mongoose.Types.ObjectId[];
@@ -27,6 +29,8 @@ const CourseSchema: Schema<ICourse> = new Schema(
         },
         languages: { type: [String], default: [] },
         price: { type: Number, default: 0 },
+        discountPrice: { type: Number },
+        discountActive: { type: Boolean, default: false },
         isFree: { type: Boolean, default: false },
         isFeatured: { type: Boolean, default: false },
         sections: [{ type: Schema.Types.ObjectId, ref: "Section" }],
