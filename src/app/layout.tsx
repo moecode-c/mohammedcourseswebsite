@@ -36,6 +36,7 @@ export default function RootLayout({
         className={`${inter.variable} ${pressStart2P.variable} ${vt323.variable} antialiased bg-slate-950 text-slate-100`}
       >
         {children}
+        <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
       </body>
     </html>
   );

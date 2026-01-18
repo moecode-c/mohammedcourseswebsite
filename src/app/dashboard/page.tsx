@@ -138,9 +138,14 @@ export default async function DashboardPage() {
                 )}
 
                 {/* My Courses Header */}
-                <header className="mb-8">
-                    <h1 className="text-4xl font-heading mb-4 text-shadow">My Courses</h1>
-                    <p className="font-mono text-slate-400">Courses you have access to. <Link href="/courses" className="text-primary hover:underline">Browse all courses →</Link></p>
+                <header className="mb-8 flex flex-col md:flex-row md:items-end gap-4">
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-4xl font-heading mb-2 text-shadow">My Courses</h1>
+                            <img src="/gifs/battle.gif" alt="Battle" className="w-20 h-20 rounded" />
+                        </div>
+                        <p className="font-mono text-slate-400">Courses you have access to. <Link href="/courses" className="text-primary hover:underline">Browse all courses →</Link></p>
+                    </div>
                 </header>
 
                 {/* Enrolled Courses Only */}
@@ -181,8 +186,8 @@ export default async function DashboardPage() {
                                                 <h3 className="font-heading text-lg text-primary">{course.title}</h3>
                                                 {course.difficulty && (
                                                     <span className={`text-[10px] font-mono px-1.5 rounded uppercase mt-1 inline-block border ${course.difficulty === 'beginner' ? 'bg-green-500/20 text-green-500 border-green-500/30' :
-                                                            course.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' :
-                                                                'bg-red-500/20 text-red-500 border-red-500/30'
+                                                        course.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' :
+                                                            'bg-red-500/20 text-red-500 border-red-500/30'
                                                         }`}>
                                                         {course.difficulty}
                                                     </span>
@@ -191,7 +196,7 @@ export default async function DashboardPage() {
                                             {course.isFree ? (
                                                 <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono">FREE PLAY</span>
                                             ) : (
-                                                <span className="text-xl font-bold font-heading text-arcade">{course.price} EGP</span>
+                                                <span className="text-lg md:text-xl font-bold font-heading text-arcade">{course.price} EGP</span>
                                             )}
                                         </div>
 

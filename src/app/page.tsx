@@ -7,6 +7,7 @@ import { Footer } from "@/components/ui/Footer";
 import { Gamepad2, Brain, Trophy, Ghost, Star } from "lucide-react";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
+import Squares from "@/components/ui/Squares";
 
 export default async function Home() {
   await dbConnect();
@@ -20,14 +21,22 @@ export default async function Home() {
       <section className="w-full min-h-[90vh] flex flex-col justify-center items-center text-center px-4 relative overflow-hidden bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 to-slate-950">
 
         {/* Decorative Grid Background */}
-        <div className="absolute inset-0 bg-[url('/grid-pattern.png')] opacity-10 pointer-events-none" />
+        <div className="absolute inset-0 z-0">
+          <Squares
+            direction="diagonal"
+            speed={0.2}
+            borderColor="#22c55e"
+            squareSize={80}
+            hoverFillColor="#14532d"
+          />
+        </div>
 
-        <div className="z-10 animate-fade-in-up">
+        <div className="z-10 animate-fade-in-up flex flex-col items-center">
           <div className="mb-4 inline-block px-4 py-1 rounded-full border border-primary/50 text-primary text-xs font-mono uppercase tracking-widest bg-primary/10">
             System Online v1.0
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-heading text-white mb-6 text-shadow-lg tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-heading text-white mb-6 text-shadow-lg tracking-tight font-press-start">
             Level Up Your <span className="text-primary animate-pulse">Skills</span>
           </h1>
 
@@ -35,18 +44,20 @@ export default async function Home() {
             A gamified learning platform where code meets arcade. Complete quests, earn XP, and unlock your potential.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link href="/dashboard">
-              <GameButton size="lg" className="shadow-[0_0_20px_var(--color-primary)]">
+              <GameButton size="lg" className="shadow-[0_0_20px_var(--color-primary)] font-press-start text-xs">
                 Press Start
               </GameButton>
             </Link>
             <Link href="/about">
-              <GameButton variant="ghost" size="lg">
+              <GameButton variant="ghost" size="lg" className="font-press-start text-xs">
                 Tutorial
               </GameButton>
             </Link>
           </div>
+
+          <img src="/gifs/rocket.gif" alt="Rocket Launch" className="w-24 h-24 object-contain animate-bounce-slow" />
         </div>
       </section>
 

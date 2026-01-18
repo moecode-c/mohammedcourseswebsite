@@ -33,19 +33,20 @@ export default function AboutPage() {
 
             {/* The Creator Section */}
             <section className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                <div className="relative group animate-fade-in-up">
+                <div className="relative group animate-fade-in-up h-[400px]">
                     <div className="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-xl opacity-75 blur-lg group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                    <div className="relative aspect-square bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl">
-                        {/* Placeholder for an actual image if user has one, using a generic tech visual for now */}
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
-                            <User className="w-32 h-32 text-slate-700" />
-                        </div>
-                        <Image
-                            src="/me.png"
-                            alt="Creator"
-                            fill
-                            className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 hover:scale-105 transform"
-                        />
+                    <div className="relative h-full bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl flex items-center justify-center">
+                        {/* @ts-ignore */}
+                        <model-viewer
+                            src="/3dmodels/dualshock_ps1.glb"
+                            alt="Retro Controller 3D Model"
+                            auto-rotate
+                            camera-controls
+                            style={{ width: '100%', height: '100%', backgroundColor: '#0f172a' }}
+                            shadow-intensity="1"
+                        >
+                            {/* @ts-ignore */}
+                        </model-viewer>
                     </div>
                 </div>
 
