@@ -48,22 +48,34 @@ export async function POST(req: Request) {
         // Check Answer
         const isCorrect = question.correctOptionIndex === selectedOptionIndex;
         const answerId = `${sectionId}-${questionIndex}`;
-        const alreadyAnswered = user.answeredQuestions?.includes(answerId);
+
+        // Use a more robust check for already answered
+        const answeredQuestions = user.answeredQuestions || [];
+        const alreadyAnswered = answeredQuestions.some(id => String(id) === String(answerId));
+
+        console.log(`[QUIZ] Processing answer for user ${user.email}`);
+        console.log(`[QUIZ] Section: ${sectionId}, Question: ${questionIndex}, AnswerId: ${answerId}`);
+        console.log(`[QUIZ] User answeredQuestions before:`, answeredQuestions);
+        console.log(`[QUIZ] alreadyAnswered: ${alreadyAnswered}, isCorrect: ${isCorrect}`);
 
         let xpAwarded = 0;
 
         if (isCorrect) {
             if (!alreadyAnswered) {
-                // Award XP
-                const result = await awardXP(payload.userId, 10, `quiz-${answerId}`);
-                xpAwarded = result.xpAwarded;
+                // Award XP - pass the user object to avoid overwriting
+                const result = await awardXP(user, 10, `quiz-${answerId}`);
+                xpAwarded = result?.xpAwarded || 0;
 
-                // Mark as answered
-                if (!user.answeredQuestions) user.answeredQuestions = [];
-                user.answeredQuestions.push(answerId);
-                await user.save();
+                // Mark as answered using atomic operators for absolute safety
+                await User.updateOne(
+                    { _id: user._id },
+                    { $addToSet: { answeredQuestions: answerId } }
+                );
+
+                console.log(`[QUIZ] Atomic update: added ${answerId} to user ${user.email}`);
+            } else {
+                console.log(`[QUIZ] XP already awarded previously.`);
             }
-            // If already answered, we just confirm it's correct but 0 XP
         }
 
         return NextResponse.json({

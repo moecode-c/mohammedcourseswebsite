@@ -86,9 +86,20 @@ export default function CoursesClient({ courses }: CoursesClientProps) {
                                                 )}
                                             </div>
                                             {course.isFree ? (
-                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono whitespace-nowrap self-start md:self-auto">FREE</span>
+                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono whitespace-nowrap self-start md:self-auto uppercase tracking-tighter">FREE ACCESS</span>
                                             ) : (
-                                                <span className="text-lg md:text-xl font-bold font-press-start text-arcade whitespace-nowrap self-start md:self-auto">{course.price} EGP</span>
+                                                <div className="flex flex-col items-end">
+                                                    {course.discountActive && course.discountPrice !== undefined ? (
+                                                        <>
+                                                            <span className="text-[10px] font-mono text-slate-500 line-through decoration-arcade/50">{course.price} EGP</span>
+                                                            <span className="text-lg md:text-xl font-bold font-press-start text-arcade whitespace-nowrap animate-pulse">
+                                                                {course.discountPrice} EGP
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-lg md:text-xl font-bold font-press-start text-arcade whitespace-nowrap self-start md:self-auto">{course.price} EGP</span>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
 

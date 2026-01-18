@@ -16,11 +16,18 @@ export interface XPAwardResult {
 }
 
 export async function awardXP(
-    userId: string,
+    userOrId: string | IUser,
     amount: number,
-    reason?: string // For logging in the future
+    reason?: string
 ): Promise<XPAwardResult | null> {
-    const user = await User.findById(userId);
+    let user: IUser | null;
+
+    if (typeof userOrId === 'string') {
+        user = await User.findById(userOrId);
+    } else {
+        user = userOrId;
+    }
+
     if (!user) return null;
 
     const previousLevel = user.level || 1;
@@ -32,10 +39,12 @@ export async function awardXP(
     if (newLevel > previousLevel) {
         user.level = newLevel;
         levelUp = true;
-        // Potentially award badge for reaching level X here
     }
 
-    await user.save();
+    // Only save if we fetched the user by ID locally
+    if (typeof userOrId === 'string') {
+        await user.save();
+    }
 
     return {
         previousLevel,

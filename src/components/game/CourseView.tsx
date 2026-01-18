@@ -19,6 +19,7 @@ interface CourseViewProps {
 export function CourseView({ course, user, hasPendingCertificate = false, hasPendingAccessRequest = false }: CourseViewProps) {
     const [currentSection, setCurrentSection] = useState(course.sections[0]);
     const [completedSections, setCompletedSections] = useState<string[]>(user.completedSections || []);
+    const [answeredQuestions, setAnsweredQuestions] = useState<string[]>(user.answeredQuestions || []);
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [xpGained, setXpGained] = useState<number | null>(null);
     const [isPendingAccess, setIsPendingAccess] = useState(hasPendingAccessRequest);
@@ -218,10 +219,25 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                         <h3 className="text-2xl font-heading text-arcade mb-2">RESTRICTED AREA</h3>
                                         {/* Improved Price Display */}
                                         <div className="flex flex-col items-center gap-2 mb-6">
-                                            <span className="text-slate-400">Unlock Full Access for Only</span>
-                                            <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">
-                                                {course.isFree ? "FREE" : `${course.price} EGP`}
-                                            </span>
+                                            <span className="text-slate-400 font-mono text-center">Unlock Full Access for Only</span>
+                                            {course.isFree ? (
+                                                <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">FREE</span>
+                                            ) : (
+                                                <div className="flex flex-col items-center">
+                                                    {course.discountActive && course.discountPrice !== undefined ? (
+                                                        <>
+                                                            <span className="text-sm font-mono text-slate-500 line-through decoration-arcade mb-1">{course.price} EGP</span>
+                                                            <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)] animate-pulse">
+                                                                {course.discountPrice} EGP
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">
+                                                            {course.price} EGP
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         <p className="text-slate-400 mb-6 text-center max-w-sm">To access this stage and the rest of the mission, you must unlock the full course with a one-time payment.</p>
 
@@ -313,10 +329,15 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                         <QuizView
                                                             sectionId={currentSection._id}
                                                             questions={currentSection.questions || []}
-                                                            answeredQuestions={user.answeredQuestions || []}
+                                                            answeredQuestions={answeredQuestions}
                                                             onXPGain={(amount) => {
                                                                 setXpGained(amount);
                                                                 setTimeout(() => setXpGained(null), 3000);
+                                                            }}
+                                                            onAnswerCorrect={(id: string) => {
+                                                                if (!answeredQuestions.includes(id)) {
+                                                                    setAnsweredQuestions(prev => [...prev, id]);
+                                                                }
                                                             }}
                                                         />
                                                     );

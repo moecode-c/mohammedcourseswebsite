@@ -15,24 +15,24 @@ interface QuizViewProps {
     questions: Question[];
     answeredQuestions: string[];
     onXPGain: (amount: number) => void;
+    onAnswerCorrect: (answerId: string) => void;
 }
 
-export function QuizView({ sectionId, questions, answeredQuestions, onXPGain }: QuizViewProps) {
+export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, onAnswerCorrect }: QuizViewProps) {
     const [quizStarted, setQuizStarted] = useState(false);
     const [results, setResults] = useState<{ [key: number]: { isCorrect: boolean, selected: number, correctIndex: number } }>({});
     const [loading, setLoading] = useState<number | null>(null);
-    // Track answers from THIS session locally
-    const [locallyAnswered, setLocallyAnswered] = useState<string[]>([]);
 
-    // Combine server-side answered questions with locally answered this session
-    const allAnswered = [...answeredQuestions, ...locallyAnswered];
+    // Ensure everything is treated as a string for robust matching
+    const sId = String(sectionId);
+    const allAnswered = (answeredQuestions || []).map(String);
 
     // Check if ALL questions in this quiz have been answered before (including this session)
-    const allQuestionsAnsweredBefore = questions.every((_, qIdx) =>
-        allAnswered.includes(`${sectionId}-${qIdx}`)
+    const allQuestionsAnsweredBefore = questions.length > 0 && questions.every((_, qIdx) =>
+        allAnswered.includes(`${sId}-${qIdx}`)
     );
     const anyQuestionAnsweredBefore = questions.some((_, qIdx) =>
-        allAnswered.includes(`${sectionId}-${qIdx}`)
+        allAnswered.includes(`${sId}-${qIdx}`)
     );
 
     const handleAnswer = async (qIdx: number, optionIdx: number) => {
@@ -64,10 +64,10 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain }: 
                     }
                 }));
 
-                // Track locally answered questions for this session
+                // Track answered questions for this session via parent state
                 if (data.isCorrect) {
-                    const answerId = `${sectionId}-${qIdx}`;
-                    setLocallyAnswered(prev => [...prev, answerId]);
+                    const answerId = `${sId}-${qIdx}`;
+                    onAnswerCorrect(answerId);
                 }
 
                 if (data.xpAwarded > 0) {

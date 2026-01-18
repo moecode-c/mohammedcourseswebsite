@@ -6,6 +6,7 @@ import { GameButton } from "@/components/ui/GameButton";
 import { LevelBadge } from "@/components/game/LevelBadge";
 import { XPBar } from "@/components/game/XPBar";
 import { Menu, X, Home, Map, BookOpen, User, Shield, Search, Trophy } from "lucide-react";
+import { getLevelProgress } from "@/lib/gamification-utils";
 
 interface NavbarClientProps {
     user: any; // Using any for simplicity as User type is complex to import here, but ideally should be typed
@@ -13,6 +14,9 @@ interface NavbarClientProps {
 
 export function NavbarClient({ user }: NavbarClientProps) {
     const [isOpen, setIsOpen] = useState(false);
+
+    // Get proper progress for labels
+    const progress = user ? getLevelProgress(user.xp) : null;
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -70,8 +74,13 @@ export function NavbarClient({ user }: NavbarClientProps) {
                 <div className="hidden lg:flex items-center gap-6">
                     {user ? (
                         <>
-                            <div className="flex flex-col w-32">
-                                <XPBar xp={user.xp} showLabels={false} />
+                            <div className="flex items-center gap-3 bg-slate-950/50 px-3 py-1.5 rounded-full border border-slate-700/50">
+                                <div className="flex flex-col w-24">
+                                    <XPBar xp={user.xp} showLabels={false} />
+                                </div>
+                                <span className="text-[10px] text-primary font-mono font-bold whitespace-nowrap">
+                                    {progress?.xpGainedInLevel} / {progress?.xpNeeded} XP
+                                </span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="font-mono text-sm uppercase text-slate-300 truncate max-w-[100px]">
@@ -145,7 +154,15 @@ export function NavbarClient({ user }: NavbarClientProps) {
                                 <LevelBadge level={user.level} size="sm" />
                             </div>
                         </div>
-                        <XPBar xp={user.xp} showLabels={true} />
+                        <div className="space-y-1">
+                            <XPBar xp={user.xp} showLabels={false} />
+                            <div className="flex justify-between items-center px-1">
+                                <span className="text-[10px] text-slate-500 font-mono italic">LVL {user.level} PROGRESS</span>
+                                <span className="text-[10px] text-primary font-mono font-bold">
+                                    {progress?.xpGainedInLevel}/{progress?.xpNeeded} XP
+                                </span>
+                            </div>
+                        </div>
 
                         {user.role === "admin" && (
                             <Link href="/admin" onClick={toggleMenu} className="mt-4 block">

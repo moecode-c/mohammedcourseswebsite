@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { Navbar } from "@/components/ui/Navbar";
 import { CourseView } from "@/components/game/CourseView";
 import dbConnect from "@/lib/db";
@@ -102,7 +103,7 @@ async function getCourseData(id: string) {
             ...user,
             _id: (user as any)._id.toString(),
             completedSections: (user as any).completedSections.map((id: any) => id.toString()),
-            answeredQuestions: (user as any).answeredQuestions || []
+            answeredQuestions: (user as any).answeredQuestions?.map((id: any) => String(id)) || []
         } : null,
         hasPendingCertificate,
         hasPendingAccessRequest
