@@ -41,7 +41,7 @@ const UserSchema: Schema<IUser> = new Schema(
         completedSections: [{ type: Schema.Types.ObjectId, ref: "Section" }],
         completedCourses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
         unlockedCourses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
-        answeredQuestions: [{ type: String }],
+        answeredQuestions: { type: [String], default: [] },
     },
     { timestamps: true }
 );

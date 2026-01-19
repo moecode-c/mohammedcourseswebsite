@@ -16,9 +16,10 @@ interface QuizViewProps {
     answeredQuestions: string[];
     onXPGain: (amount: number) => void;
     onAnswerCorrect: (answerId: string) => void;
+    isCompleted?: boolean; // Prop to force completed state
 }
 
-export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, onAnswerCorrect }: QuizViewProps) {
+export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, onAnswerCorrect, isCompleted }: QuizViewProps) {
     const [quizStarted, setQuizStarted] = useState(false);
     const [results, setResults] = useState<{ [key: number]: { isCorrect: boolean, selected: number, correctIndex: number } }>({});
     const [loading, setLoading] = useState<number | null>(null);
@@ -27,10 +28,9 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
     const sId = String(sectionId);
     const allAnswered = (answeredQuestions || []).map(String);
 
-    // Check if ALL questions in this quiz have been answered before (including this session)
-    const allQuestionsAnsweredBefore = questions.length > 0 && questions.every((_, qIdx) =>
-        allAnswered.includes(`${sId}-${qIdx}`)
-    );
+    // Quiz counts for the current section
+    const currentSectionResults = allAnswered.filter(id => id.startsWith(`${sId}-`));
+    const showRetake = isCompleted || (questions.length > 0 && currentSectionResults.length >= questions.length);
     const anyQuestionAnsweredBefore = questions.some((_, qIdx) =>
         allAnswered.includes(`${sId}-${qIdx}`)
     );
@@ -91,7 +91,7 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
                         {questions.length} question{questions.length !== 1 ? 's' : ''} await you.
                     </p>
 
-                    {allQuestionsAnsweredBefore ? (
+                    {showRetake ? (
                         <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded mb-6 mt-6">
                             <p className="text-yellow-400 font-mono text-sm">
                                 ⚠️ You have already completed this quiz. No XP will be awarded for retaking.
@@ -114,7 +114,7 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
                         onClick={() => setQuizStarted(true)}
                         className="mt-4"
                     >
-                        {allQuestionsAnsweredBefore ? (
+                        {showRetake ? (
                             <><RotateCcw className="w-5 h-5 mr-2" /> RETAKE QUIZ</>
                         ) : (
                             <><Play className="w-5 h-5 mr-2" /> START QUIZ</>
@@ -130,7 +130,7 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
             <div className="bg-slate-900/50 border border-slate-800 p-6 rounded text-center mb-8">
                 <h3 className="text-2xl font-heading text-primary mb-2">QUIZ MODE ACTIVE</h3>
                 <p className="font-mono text-slate-400">
-                    {allQuestionsAnsweredBefore
+                    {showRetake
                         ? "Retake mode - No XP available"
                         : <>Answer correctly to earn <span className="text-yellow-400 font-bold">10 XP</span> per question.</>
                     }

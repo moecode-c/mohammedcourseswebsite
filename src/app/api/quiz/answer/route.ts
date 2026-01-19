@@ -5,6 +5,7 @@ import Section from "@/models/Section";
 import { verifyToken } from "@/lib/auth";
 import { awardXP } from "@/lib/gamification";
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import mongoose from "mongoose";
 
 export async function POST(req: Request) {
@@ -47,34 +48,86 @@ export async function POST(req: Request) {
 
         // Check Answer
         const isCorrect = question.correctOptionIndex === selectedOptionIndex;
-        const answerId = `${sectionId}-${questionIndex}`;
+        const sId = String(sectionId);
+        const answerId = `${sId}-${questionIndex}`;
 
         // Use a more robust check for already answered
-        const answeredQuestions = user.answeredQuestions || [];
-        const alreadyAnswered = answeredQuestions.some(id => String(id) === String(answerId));
+        // Force strings and remove any nulls/undefineds
+        // Safeguard: If the previous schema created objects { type: "..." }, extract the string.
+        const rawAnswers = user.answeredQuestions || [];
+        const answeredQuestions = (Array.isArray(rawAnswers) ? rawAnswers : []).map(id => {
+            if (typeof id === 'object' && id !== null && 'type' in (id as any)) {
+                return String((id as any).type);
+            }
+            return String(id);
+        });
+        const alreadyAnswered = answeredQuestions.includes(answerId);
 
-        console.log(`[QUIZ] Processing answer for user ${user.email}`);
-        console.log(`[QUIZ] Section: ${sectionId}, Question: ${questionIndex}, AnswerId: ${answerId}`);
-        console.log(`[QUIZ] User answeredQuestions before:`, answeredQuestions);
-        console.log(`[QUIZ] alreadyAnswered: ${alreadyAnswered}, isCorrect: ${isCorrect}`);
+        // Check if the section itself is marked completed
+        const isSectionAlreadyDone = (user.completedSections || []).some((id: any) => String(id) === sId);
+
+        console.log(`[QUIZ] User: ${user.email}, SID: ${sId}, QIdx: ${questionIndex}`);
+        console.log(`[QUIZ] Flags - alreadyAnswered: ${alreadyAnswered}, isSectionDone: ${isSectionAlreadyDone}, isCorrect: ${isCorrect}`);
+
+        // DETAILED LOG FOR DEBUGGING XP LEAK
+        if (!alreadyAnswered && isSectionAlreadyDone) {
+            console.log(`[QUIZ-RESTRICTION] Blocking XP because Section is already completed even though AnswerId was missing.`);
+        }
 
         let xpAwarded = 0;
 
+        // ONLY award XP if correct AND not already answered AND section not completed
         if (isCorrect) {
-            if (!alreadyAnswered) {
+            if (!alreadyAnswered && !isSectionAlreadyDone) {
                 // Award XP - pass the user object to avoid overwriting
                 const result = await awardXP(user, 10, `quiz-${answerId}`);
                 xpAwarded = result?.xpAwarded || 0;
+                console.log(`[QUIZ-XP] Awarded ${xpAwarded} XP to ${user.email}`);
+            } else {
+                console.log(`[QUIZ-XP] XP BLOCKED (Already Answered: ${alreadyAnswered}, Section Done: ${isSectionAlreadyDone})`);
+            }
 
-                // Mark as answered using atomic operators for absolute safety
-                await User.updateOne(
-                    { _id: user._id },
-                    { $addToSet: { answeredQuestions: answerId } }
+            // Always try to update progress to ensure persistence
+            try {
+                // Update individual answer tracking
+                const finalUpdate: any = {
+                    $addToSet: { answeredQuestions: answerId },
+                    $set: {
+                        xp: user.xp,
+                        level: user.level,
+                        updatedAt: new Date()
+                    }
+                };
+
+                // Check if this was the last question for this section
+                const updatedAnswered = [...(user.answeredQuestions || []), answerId];
+                const sectionQuestionsCount = questions.length;
+                const answeredForThisSection = updatedAnswered.filter(id => id.startsWith(`${sId}-`));
+
+                // If all questions are answered, mark section as completed too
+                if (answeredForThisSection.length >= sectionQuestionsCount) {
+                    finalUpdate.$addToSet.completedSections = section._id;
+                    console.log(`[QUIZ] Marking section ${sectionId} as COMPLETED`);
+                }
+
+                const updatedUser = await User.findByIdAndUpdate(
+                    payload.userId,
+                    finalUpdate,
+                    { new: true, runValidators: false }
                 );
 
-                console.log(`[QUIZ] Atomic update: added ${answerId} to user ${user.email}`);
-            } else {
-                console.log(`[QUIZ] XP already awarded previously.`);
+                if (updatedUser) {
+                    const count = updatedUser.answeredQuestions?.length || 0;
+                    const isSectionDone = updatedUser.completedSections?.some(id => String(id) === String(sectionId));
+                    console.log(`[QUIZ-SUCCESS] User: ${updatedUser.email}, Answers: ${count}, SectionDone: ${isSectionDone}`);
+                }
+
+                // Force Next.js to re-fetch the course page data on next load
+                revalidatePath(`/courses`, 'layout');
+                revalidatePath(`/courses/${section.courseId}`, 'page');
+            } catch (saveError) {
+                console.error(`[QUIZ] SAVE ERROR:`, saveError);
+                return NextResponse.json({ error: "Failed to save progress" }, { status: 500 });
             }
         }
 

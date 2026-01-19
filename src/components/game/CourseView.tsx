@@ -330,6 +330,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                             sectionId={currentSection._id}
                                                             questions={currentSection.questions || []}
                                                             answeredQuestions={answeredQuestions}
+                                                            isCompleted={completedSections.includes(currentSection._id)}
                                                             onXPGain={(amount) => {
                                                                 setXpGained(amount);
                                                                 setTimeout(() => setXpGained(null), 3000);

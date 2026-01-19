@@ -7,6 +7,7 @@ import User from "@/models/User";
 import CertificateRequest from "@/models/CertificateRequest";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { revalidatePath, unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import mongoose from "mongoose";
 import "@/models/Section"; // Force Section model registration
@@ -14,6 +15,7 @@ import "@/models/Section"; // Force Section model registration
 import AccessRequest from "@/models/AccessRequest";
 
 async function getCourseData(id: string) {
+    noStore();
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -62,35 +64,51 @@ async function getCourseData(id: string) {
         }
     }
 
-    // Filter sections
+    // Filter sections and ensure IDs are strings
     const sections = (course.sections as any[]).map((section: any) => {
         const isLocked = !hasFullAccess && !course.isFree && !section.isFree;
+        const sId = section._id.toString();
 
-        if (isAdmin) return { ...section, isLocked: false };
+        if (isAdmin) return {
+            ...section,
+            _id: sId,
+            isLocked: false
+        };
 
         if (isLocked) {
             return {
-                _id: section._id.toString(),
+                _id: sId,
                 title: section.title,
                 isFree: section.isFree,
                 order: section.order,
                 isLocked: true,
-                // Omit content/video/link
             };
         }
         return {
-            _id: section._id.toString(),
+            _id: sId,
             title: section.title,
             isFree: section.isFree,
             order: section.order,
-            type: section.type,     // Pass Type
+            type: section.type,
             content: section.content,
             videoUrl: section.videoUrl,
-            linkUrl: section.linkUrl, // Pass Link URL
-            questions: section.questions, // Pass Quiz Questions
+            linkUrl: section.linkUrl,
+            questions: section.questions,
             isLocked: false,
         };
     });
+
+    const finalUser = user ? {
+        ...user,
+        _id: (user as any)._id.toString(),
+        completedSections: (user as any).completedSections.map((id: any) => id.toString()),
+        answeredQuestions: (user as any).answeredQuestions?.map((id: any) => String(id)) || []
+    } : null;
+
+    // Final synchronization log
+    if (finalUser) {
+        console.log(`[QUIZ-SYNC] User: ${finalUser.email}, Saved Answers: ${finalUser.answeredQuestions.length}`);
+    }
 
     return JSON.parse(JSON.stringify({
         course: {
@@ -99,12 +117,7 @@ async function getCourseData(id: string) {
             sections,
             isLocked: !hasFullAccess && !course.isFree
         },
-        user: user ? {
-            ...user,
-            _id: (user as any)._id.toString(),
-            completedSections: (user as any).completedSections.map((id: any) => id.toString()),
-            answeredQuestions: (user as any).answeredQuestions?.map((id: any) => String(id)) || []
-        } : null,
+        user: finalUser,
         hasPendingCertificate,
         hasPendingAccessRequest
     }));
