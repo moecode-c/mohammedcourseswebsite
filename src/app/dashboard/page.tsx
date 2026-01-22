@@ -19,6 +19,12 @@ async function getData() {
 
     await dbConnect();
     const user = await User.findById(payload.userId);
+
+    if (user) {
+        const { updateStreak } = await import("@/lib/gamification");
+        await updateStreak(user);
+    }
+
     const courses = await Course.find({}).populate("sections").sort({ order: 1, createdAt: 1 }).lean();
 
     // Fetch certificate requests for this user
@@ -115,7 +121,7 @@ export default async function DashboardPage() {
                                 const progress = getCourseProgress(course);
                                 return (
                                     <Link key={course._id} href={`/courses/${course._id}`}>
-                                        <GameCard className="p-4 hover:border-primary/50 transition-colors cursor-pointer flex items-center gap-4">
+                                        <GameCard className="p-4 hover:border-primary/50 transition-colors cursor-pointer flex flex-wrap sm:flex-nowrap items-center gap-4">
                                             <div className="w-16 h-16 bg-slate-800 rounded overflow-hidden shrink-0">
                                                 {course.thumbnail && <img src={course.thumbnail} alt="" className="w-full h-full object-cover" />}
                                             </div>
@@ -141,9 +147,9 @@ export default async function DashboardPage() {
                 {/* My Courses Header */}
                 <header className="mb-8 flex flex-col md:flex-row md:items-end gap-4">
                     <div>
-                        <div className="flex items-center gap-4">
-                            <h1 className="text-4xl font-heading mb-2 text-shadow font-press-start text-2xl md:text-3xl">My Courses</h1>
-                            <img src="/gifs/battle.gif" alt="Battle" className="w-48 h-48 rounded" />
+                        <div className="flex flex-wrap items-center gap-4">
+                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-heading mb-2 text-shadow font-press-start">My Courses</h1>
+                            <img src="/gifs/battle.gif" alt="Battle" className="w-50 h-50 md:w-64 md:h-64 rounded object-contain" />
                         </div>
                         <p className="font-mono text-slate-400">Courses you have access to. <Link href="/courses" className="text-primary hover:underline">Browse all courses →</Link></p>
                     </div>

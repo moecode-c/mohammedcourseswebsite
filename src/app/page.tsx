@@ -37,8 +37,8 @@ export default async function Home() {
             System Online v1.0
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-heading text-white mb-6 text-shadow-lg tracking-tight font-press-start">
-            Level Up Your <span className="text-primary animate-pulse">Skills</span>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading text-white mb-6 text-shadow-lg tracking-tight">
+            Level Up Your <span className="text-primary">Skills</span>
           </h1>
 
           <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 font-mono">
@@ -116,12 +116,11 @@ export default async function Home() {
             <div className="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-lg opacity-75 blur group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
             <div className="relative w-80 h-80 md:w-[450px] md:h-[450px] bg-slate-950 rounded border-2 border-slate-700 overflow-hidden">
               <ModelViewerWrapper
-                src="/3dmodels/pacman_arcade__animation.glb"
-                alt="Pacman Arcade"
+                src="/3dmodels/dualshock_ps1.glb"
+                alt="DualShock PS1"
                 autoRotate={false}
                 cameraControls={true}
-                cameraOrbit="0deg 75deg 105%"
-                animationName="pac man"
+                cameraOrbit="0deg 0deg 120%"
                 style={{ width: '100%', height: '100%' }}
               />
             </div>

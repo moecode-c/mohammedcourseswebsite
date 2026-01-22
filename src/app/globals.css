@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-vt323);
   --font-heading: var(--font-press-start);
   --font-pixel: var(--font-vt323);
+  --font-mono: var(--font-vt323);
 
   --color-primary: #39FF14;
   --color-secondary: #D946EF;
@@ -30,13 +31,24 @@
   .text-glow {
     text-shadow: 0 0 10px currentColor;
   }
+
+  /* Game font utility classes */
+  .font-game {
+    font-family: var(--font-vt323), monospace;
+  }
+
+  .font-game-heading {
+    font-family: var(--font-press-start), monospace;
+  }
 }
 
 body {
-  font-family: var(--font-inter);
+  font-family: var(--font-vt323), monospace;
   background-color: var(--color-background);
   color: var(--color-foreground);
   cursor: url('/cursor/cursor.webp') 0 0, auto;
+  letter-spacing: 0.5px;
+  font-size: 18px;
 }
 
 a,
@@ -53,5 +65,63 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-heading);
+  font-family: var(--font-press-start), monospace;
+}
+
+/* Apply pixel font to common text elements - but NOT headings */
+p,
+li,
+a,
+label {
+  font-family: var(--font-vt323), monospace;
+}
+
+/* Navigation links */
+nav a,
+nav button,
+nav span {
+  font-family: var(--font-vt323), monospace;
+}
+
+/* Buttons and inputs get pixel font */
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-vt323), monospace;
+}
+
+/* Keep Press Start 2P for specific game elements */
+.font-heading,
+[class*="font-heading"] {
+  font-family: var(--font-press-start), monospace !important;
+}
+
+.font-press-start,
+[class*="font-press-start"] {
+  font-family: var(--font-press-start), monospace !important;
+}
+
+/* Make font-mono use pixel font */
+.font-mono,
+[class*="font-mono"] {
+  font-family: var(--font-vt323), monospace !important;
+  font-size: 1.15em;
+}
+
+/* Ensure headings use Press Start 2P and inherit their size correctly */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-press-start), monospace !important;
+}
+
+h1 span,
+h2 span,
+h3 span {
+  font-family: inherit !important;
+  font-size: inherit !important;
 }

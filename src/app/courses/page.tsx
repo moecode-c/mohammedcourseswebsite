@@ -22,7 +22,7 @@ export default async function CoursesPage() {
                         <h1 className="text-4xl font-heading mb-4 text-shadow text-center md:text-left">ALL COURSES</h1>
                         <p className="font-mono text-slate-400 text-center md:text-left">Explore our library of knowledge. Hack the planet.</p>
                     </div>
-                    <img src="/gifs/sitting2.gif" alt="Sitting" className="w-64 md:w-80 h-auto" />
+                    <img src="/gifs/sitting2.gif" alt="Sitting" className="w-80 md:w-[600px] lg:w-[700px] h-auto object-contain" />
                 </header>
 
                 <CoursesClient courses={courses} />

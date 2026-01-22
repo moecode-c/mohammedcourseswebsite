@@ -26,6 +26,10 @@ export async function GET() {
             return NextResponse.json({ user: null }, { status: 200 });
         }
 
+        // Update streak if needed
+        const { updateStreak } = await import("@/lib/gamification");
+        await updateStreak(user);
+
         return NextResponse.json({
             user: {
                 id: user._id,

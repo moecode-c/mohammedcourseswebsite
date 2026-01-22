@@ -30,7 +30,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
     };
 
     return (
-        <nav className="w-full bg-slate-900 border-b-2 border-slate-700 p-4 sticky top-0 z-50 shadow-lg">
+        <nav className="w-full bg-slate-950 border-b-2 border-primary/30 p-4 sticky top-0 z-50 shadow-[0_0_20px_rgba(57,255,20,0.1)]">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="font-heading text-lg md:text-xl text-white hover:text-primary transition-colors flex items-center gap-2 z-50 relative">
@@ -40,15 +40,15 @@ export function NavbarClient({ user }: NavbarClientProps) {
                 </Link>
 
                 {/* Desktop Navigation */}
-                <div className="hidden lg:flex gap-8 items-center">
-                    <Link href="/" className="font-mono text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
-                        <Home className="w-4 h-4" /> HQ
+                <div className="hidden min-[1280px]:flex gap-8 items-center">
+                    <Link href="/" className="text-base text-slate-300 hover:text-white transition-colors flex items-center gap-2">
+                        <Home className="w-5 h-5" /> HQ
                     </Link>
 
                     {/* Courses Dropdown */}
                     <div className="relative group">
-                        <button className="font-mono text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2 py-2">
-                            <BookOpen className="w-4 h-4" /> COURSES
+                        <button className="text-base text-slate-300 hover:text-white transition-colors flex items-center gap-2 py-2">
+                            <BookOpen className="w-5 h-5" /> COURSES
                         </button>
                         <div className="absolute top-full left-0 mt-0 w-48 bg-slate-900 border border-slate-700 rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top pt-2 z-50">
                             <div className="flex flex-col">
@@ -62,16 +62,16 @@ export function NavbarClient({ user }: NavbarClientProps) {
                         </div>
                     </div>
 
-                    <Link href="/leaderboard" className="font-mono text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
-                        <Trophy className="w-4 h-4" /> LEADERBOARD
+                    <Link href="/leaderboard" className="text-base text-slate-300 hover:text-white transition-colors flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-yellow-500" /> LEADERBOARD
                     </Link>
-                    <Link href="/about" className="font-mono text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
-                        <BookOpen className="w-4 h-4" /> TUTORIAL
+                    <Link href="/about" className="text-base text-slate-300 hover:text-white transition-colors flex items-center gap-2">
+                        <BookOpen className="w-5 h-5" /> TUTORIAL
                     </Link>
                 </div>
 
                 {/* User / Login Section (Desktop) */}
-                <div className="hidden lg:flex items-center gap-6">
+                <div className="hidden min-[1280px]:flex items-center gap-6">
                     {user ? (
                         <>
                             <div className="flex items-center gap-3 bg-slate-950/50 px-3 py-1.5 rounded-full border border-slate-700/50">
@@ -83,7 +83,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
                                 </span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="font-mono text-sm uppercase text-slate-300 truncate max-w-[100px]">
+                                <span className="text-base uppercase text-slate-200 truncate max-w-[120px]">
                                     {user.name}
                                 </span>
                                 <LevelBadge level={user.level} size="sm" />
@@ -111,13 +111,13 @@ export function NavbarClient({ user }: NavbarClientProps) {
                 </div>
 
                 {/* Mobile Hamburger */}
-                <button onClick={toggleMenu} className="lg:hidden text-white z-50 relative p-2 focus:outline-none">
+                <button onClick={toggleMenu} className="min-[1280px]:hidden text-white z-50 relative p-2 focus:outline-none">
                     {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
             </div>
 
             {/* Mobile Sidebar / Drawer */}
-            <div className={`fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-40 transition-transform duration-300 lg:hidden flex flex-col pt-24 px-6 gap-8 overflow-y-auto ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
+            <div className={`fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-40 transition-transform duration-300 min-[1280px]:hidden flex flex-col pt-24 px-6 gap-8 overflow-y-auto ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
 
                 {/* Mobile Links */}
                 <div className="flex flex-col gap-6">

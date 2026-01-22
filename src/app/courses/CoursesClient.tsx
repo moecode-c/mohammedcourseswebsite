@@ -54,7 +54,7 @@ export default function CoursesClient({ courses }: CoursesClientProps) {
 
             {/* Course Grid */}
             <div className="flex-1 w-full">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 min-[938px]:grid-cols-2 min-[1280px]:grid-cols-3 gap-6">
                     {filteredCourses.length > 0 ? (
                         filteredCourses.map((course: any) => (
                             <div key={course._id} className="group relative h-full">

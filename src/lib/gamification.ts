@@ -54,3 +54,47 @@ export async function awardXP(
         newTotalXP: user.xp,
     };
 }
+
+export async function updateStreak(user: IUser): Promise<boolean> {
+    const now = new Date();
+    const lastActive = user.streak?.lastActiveDate ? new Date(user.streak.lastActiveDate) : null;
+
+    if (!lastActive) {
+        user.streak = {
+            count: 1,
+            lastActiveDate: now,
+        };
+        await user.save();
+        return true;
+    }
+
+    // Reset hours to compare only dates
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const lastDate = new Date(lastActive.getFullYear(), lastActive.getMonth(), lastActive.getDate());
+    const diffTime = today.getTime() - lastDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    let updated = false;
+
+    if (user.streak.count === 0) {
+        user.streak.count = 1;
+        user.streak.lastActiveDate = now;
+        updated = true;
+    } else if (diffDays === 1) {
+        // Consecutive day
+        user.streak.count += 1;
+        user.streak.lastActiveDate = now;
+        updated = true;
+    } else if (diffDays > 1) {
+        // Streak broken
+        user.streak.count = 1;
+        user.streak.lastActiveDate = now;
+        updated = true;
+    }
+
+    if (updated) {
+        await user.save();
+    }
+
+    return updated;
+}
