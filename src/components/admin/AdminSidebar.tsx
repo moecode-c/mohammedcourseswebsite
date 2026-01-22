@@ -1,7 +1,7 @@
 
 "use client";
 
-import { LayoutDashboard, CreditCard, Award, BookOpen, Users } from "lucide-react";
+import { LayoutDashboard, CreditCard, Award, BookOpen, Users, Mail } from "lucide-react";
 
 interface AdminSidebarProps {
     currentView: string;
@@ -12,6 +12,7 @@ export function AdminSidebar({ currentView, setCurrentView }: AdminSidebarProps)
     const menuItems = [
         { id: "overview", label: "OVERVIEW", icon: LayoutDashboard },
         { id: "requests", label: "PAYMENT REQUESTS", icon: CreditCard },
+        { id: "messages", label: "CONTACT MESSAGES", icon: Mail },
         { id: "certificates", label: "CERTIFICATES", icon: Award },
         { id: "courses", label: "MANAGE COURSES", icon: BookOpen },
         { id: "users", label: "USERS DATABASE", icon: Users },

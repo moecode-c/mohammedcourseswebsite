@@ -2,6 +2,7 @@ import { Navbar } from "@/components/ui/Navbar";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import CoursesClient from "./CoursesClient";
+import { ContactSection } from "@/components/ui/ContactSection";
 
 async function getCourses() {
     await dbConnect();
@@ -27,6 +28,12 @@ export default async function CoursesPage() {
 
                 <CoursesClient courses={courses} />
             </div>
+
+            <ContactSection
+                source="courses"
+                title="CONTACT ME"
+                subtitle="Have questions about courses or enrollment? Send a message."
+            />
         </main>
     );
 }

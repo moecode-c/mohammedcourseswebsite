@@ -30,7 +30,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
     };
 
     return (
-        <nav className="w-full bg-slate-950 border-b-2 border-primary/30 p-4 sticky top-0 z-50 shadow-[0_0_20px_rgba(57,255,20,0.1)]">
+        <nav className="w-full bg-slate-950 border-b-2 border-primary/30 p-4 sticky top-0 z-[9999] shadow-[0_0_20px_rgba(57,255,20,0.1)]">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="font-heading text-lg md:text-xl text-white hover:text-primary transition-colors flex items-center gap-2 z-50 relative">

@@ -137,13 +137,14 @@ export default async function Home() {
               {/* Scanline */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-1 w-full animate-scan pointer-events-none" />
 
-              <p className="text-slate-300 font-mono leading-relaxed mb-4">
-                <span className="text-primary">&gt; Hello_World!</span> I am a Senior Full Stack Engineer with a passion for game systems.
-                I built this platform to show you that learning doesn't have to be boring.
-              </p>
               <p className="text-slate-300 font-mono leading-relaxed">
-                Join me on this quest to master modern web technologies. We will tackle real-world challenges,
-                defeat bugs, and level up your career.
+                <span className="text-primary">&gt; Hello_World!</span> , My name is mohammed essam el din , SWE @ El Zatuna | Full-Stack developer @ Mezatech
+                <br />
+                building large-scale platforms. enjoy solving real problems,
+                <br />
+                writing clean and scalable code, and creating systems that
+                <br />
+                are easy to use and maintain.
               </p>
             </div>
 

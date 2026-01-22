@@ -2,9 +2,9 @@ import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import { GameButton } from "@/components/ui/GameButton";
 import Link from "next/link";
-import Image from "next/image";
-import { Code, Cpu, Database, Globe, Rocket, Terminal, User, Zap } from "lucide-react";
+import { Cpu, Terminal } from "lucide-react";
 import ModelViewerWrapper from "@/components/ui/ModelViewerWrapper";
+import { ContactSection } from "@/components/ui/ContactSection";
 
 export default function AboutPage() {
     return (
@@ -80,33 +80,11 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* Tech Stack Grid */}
-            <section className="w-full bg-slate-900 py-24 border-y border-slate-800">
-                <div className="max-w-6xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-heading text-white mb-4">WEAPONRY OF CHOICE</h2>
-                        <p className="text-slate-400 font-mono">The tools we use to build the future.</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {[
-                            { icon: Globe, label: "Next.js", color: "text-white" },
-                            { icon: Database, label: "MongoDB", color: "text-green-500" },
-                            { icon: Code, label: "TypeScript", color: "text-blue-500" },
-                            { icon: Zap, label: "Tailwind", color: "text-cyan-400" },
-                            { icon: Rocket, label: "Node.js", color: "text-green-600" },
-                            { icon: Cpu, label: "React", color: "text-blue-400" },
-                            { icon: Terminal, label: "Linux", color: "text-yellow-500" },
-                            { icon: User, label: "UX/UI", color: "text-purple-500" },
-                        ].map((tech, idx) => (
-                            <div key={idx} className="bg-slate-950 p-6 rounded border border-slate-800 flex flex-col items-center justify-center gap-4 hover:scale-105 transition-transform duration-300 hover:border-slate-600 group">
-                                <tech.icon className={`w-12 h-12 ${tech.color} group-hover:animate-pulse`} />
-                                <span className="font-heading text-lg text-slate-300">{tech.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            <ContactSection
+                source="tutorial"
+                title="CONTACT ME"
+                subtitle="Got a question about the tutorial? Send a message and I will get back to you."
+            />
 
             <section className="py-24 text-center px-6 flex flex-col items-center">
                 <h2 className="text-4xl font-heading text-white mb-8">READY TO START YOUR REQUEST?</h2>

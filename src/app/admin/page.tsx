@@ -29,10 +29,20 @@ interface Course {
     isFree: boolean;
 }
 
+interface ContactMessage {
+    _id: string;
+    name: string;
+    email: string;
+    message: string;
+    source: string;
+    createdAt: string;
+}
+
 export default function AdminDashboard() {
     const [currentView, setCurrentView] = useState("overview");
     const [requests, setRequests] = useState<Request[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
+    const [messages, setMessages] = useState<ContactMessage[]>([]);
     const [usersCount, setUsersCount] = useState(0);
     const [allUsers, setAllUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -51,7 +61,7 @@ export default function AdminDashboard() {
 
     const fetchAllData = async () => {
         setLoading(true);
-        await Promise.all([fetchRequests(), fetchCourses(), fetchUsersCount()]);
+        await Promise.all([fetchRequests(), fetchCourses(), fetchUsersCount(), fetchMessages()]);
         setLoading(false);
     };
 
@@ -92,6 +102,20 @@ export default function AdminDashboard() {
         }
     };
 
+    const fetchMessages = async () => {
+        try {
+            const res = await fetch("/api/admin/messages");
+            if (res.ok) {
+                const data = await res.json();
+                setMessages(data.messages);
+            } else {
+                router.push("/login");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const handleAction = async (id: string, status: "approved" | "rejected") => {
         try {
             const res = await fetch(`/api/admin/requests/${id}`, {
@@ -112,6 +136,16 @@ export default function AdminDashboard() {
             const res = await fetch(`/api/admin/requests/${id}`, { method: "DELETE" });
             if (res.ok) {
                 setRequests(requests.filter(r => r._id !== id));
+            }
+        } catch (e) { console.error(e); }
+    };
+
+    const handleDeleteMessage = async (id: string) => {
+        if (!confirm("Delete this message?")) return;
+        try {
+            const res = await fetch(`/api/admin/messages/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                setMessages(messages.filter(m => m._id !== id));
             }
         } catch (e) { console.error(e); }
     };
@@ -252,6 +286,42 @@ export default function AdminDashboard() {
                                             <GameButton size="sm" variant="danger" onClick={() => handleDeleteRequest(req._id)} title="Delete Request"><Trash className="w-4 h-4" /></GameButton>
                                             <GameButton size="sm" variant="danger" onClick={() => handleAction(req._id, "rejected")}><XCircle className="w-4 h-4" /></GameButton>
                                             <GameButton size="sm" variant="primary" onClick={() => handleAction(req._id, "approved")}><CheckCircle className="w-4 h-4" /> APPROVE</GameButton>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
+
+                {currentView === "messages" && (
+                    <section className="animate-fade-in-up">
+                        <h2 className="text-xl font-heading text-slate-400 mb-4">INBOX</h2>
+                        {loading ? (
+                            <div className="text-slate-500 font-mono animate-pulse">Data Stream Loading...</div>
+                        ) : messages.length === 0 ? (
+                            <div className="text-slate-600 font-mono border border-slate-800 p-8 text-center rounded">
+                                No messages yet.
+                            </div>
+                        ) : (
+                            <div className="grid gap-4">
+                                {messages.map((msg) => (
+                                    <div key={msg._id} className="bg-slate-900 border border-slate-700 p-4 rounded flex flex-col gap-3">
+                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                            <div className="flex flex-wrap gap-2 items-center">
+                                                <span className="text-xs font-mono bg-primary/20 text-primary px-2 rounded">FROM: {msg.name}</span>
+                                                <span className="text-xs font-mono bg-secondary/20 text-secondary px-2 rounded">{msg.email}</span>
+                                                <span className="text-xs font-mono bg-slate-800 text-slate-300 px-2 rounded">SOURCE: {msg.source}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                                                {new Date(msg.createdAt).toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <p className="text-slate-300 font-mono leading-relaxed">{msg.message}</p>
+                                        <div className="flex justify-end">
+                                            <GameButton size="sm" variant="danger" onClick={() => handleDeleteMessage(msg._id)} title="Delete Message">
+                                                <Trash className="w-4 h-4" />
+                                            </GameButton>
                                         </div>
                                     </div>
                                 ))}
