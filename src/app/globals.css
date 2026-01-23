@@ -49,6 +49,7 @@ body {
   cursor: url('/cursor/cursor.webp') 0 0, auto;
   letter-spacing: 0.5px;
   font-size: 18px;
+  overflow-x: hidden;
 }
 
 a,
@@ -107,6 +108,18 @@ select {
 [class*="font-mono"] {
   font-family: var(--font-vt323), monospace !important;
   font-size: 1.15em;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+    letter-spacing: 0.2px;
+  }
+
+  .font-mono,
+  [class*="font-mono"] {
+    font-size: 1em;
+  }
 }
 
 /* Ensure headings use Press Start 2P and inherit their size correctly */

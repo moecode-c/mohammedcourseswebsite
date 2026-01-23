@@ -1,11 +1,15 @@
+export const dynamic = "force-dynamic";
+
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import CoursesClient from "./CoursesClient";
 import { ContactSection } from "@/components/ui/ContactSection";
+import { unstable_noStore as noStore } from "next/cache";
 
 async function getCourses() {
+    noStore();
     await dbConnect();
     const courses = await Course.find({}).populate("sections").sort({ createdAt: -1 }).lean();
     return JSON.parse(JSON.stringify(courses));

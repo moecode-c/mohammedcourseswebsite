@@ -14,7 +14,16 @@ export async function POST(req: Request) {
         }
 
         const buffer = await file.arrayBuffer();
-        const filename = `${Date.now()}_${file.name.replaceAll(" ", "_")}`;
+        const originalName = file.name || "upload";
+        const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
+        const ext = extMatch ? extMatch[1].toLowerCase() : "";
+        const baseName = originalName.replace(/\.[^/.]+$/, "");
+        const safeBase = baseName
+            .normalize("NFKD")
+            .replace(/[^a-zA-Z0-9-_]+/g, "_")
+            .replace(/^_+|_+$/g, "")
+            .slice(0, 80) || "file";
+        const filename = `${Date.now()}_${safeBase}${ext ? `.${ext}` : ""}`;
 
         const { data, error } = await supabaseAdmin.storage
             .from("coursespictures")

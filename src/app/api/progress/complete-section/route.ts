@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import Course from "@/models/Course";
 import { verifyToken } from "@/lib/auth";
 import { awardXP } from "@/lib/gamification";
 import { cookies } from "next/headers";
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
         }
 
         // Check if already completed
-        if (user.completedSections.includes(new mongoose.Types.ObjectId(sectionId))) {
+        if (user.completedSections.some((id: any) => String(id) === String(sectionId))) {
             return NextResponse.json({ message: "Already completed" }, { status: 200 });
         }
 
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
         const xpResult = await awardXP(payload.userId, 50, `completed-section-${sectionId}`);
 
         // Check if course is fully completed
-        const course = await mongoose.models.Course.findById(courseId).populate("sections");
+        const course = await Course.findById(courseId).populate("sections");
         let courseCompleted = false;
 
         if (course && course.sections) {
@@ -57,8 +58,9 @@ export async function POST(req: Request) {
             const allDone = allSectionIds.every((id: string) => userCompletedIds.includes(id));
 
             if (allDone) {
-                if (!user.completedCourses.includes(courseId)) {
-                    user.completedCourses.push(courseId);
+                const alreadyCompleted = user.completedCourses.some((id: any) => String(id) === String(courseId));
+                if (!alreadyCompleted) {
+                    user.completedCourses.push(new mongoose.Types.ObjectId(courseId));
                     await awardXP(payload.userId, 500, `completed-course-${courseId}`); // Bonus XP for course completion
                     courseCompleted = true;
                 }

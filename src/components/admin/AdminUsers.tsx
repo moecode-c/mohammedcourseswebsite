@@ -31,7 +31,19 @@ export function AdminUsers() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [creating, setCreating] = useState(false);
+    const [createError, setCreateError] = useState("");
+    const [createForm, setCreateForm] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        role: "student" as "student" | "admin"
+    });
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+    const [xpDelta, setXpDelta] = useState(0);
+    const [xpTotal, setXpTotal] = useState(0);
+    const [streakCount, setStreakCount] = useState(0);
     const [showGrantModal, setShowGrantModal] = useState(false);
     const [grantUserId, setGrantUserId] = useState<string | null>(null);
 
@@ -73,6 +85,33 @@ export function AdminUsers() {
         e.preventDefault();
         setLoading(true);
         fetchUsers(search);
+    };
+
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreating(true);
+        setCreateError("");
+
+        try {
+            const res = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(createForm),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                setCreateError(data.error || "Failed to create user.");
+                return;
+            }
+
+            setCreateForm({ name: "", email: "", phone: "", password: "", role: "student" });
+            fetchUsers(search);
+        } catch (e) {
+            setCreateError("Failed to create user.");
+        } finally {
+            setCreating(false);
+        }
     };
 
     const grantAccess = async (userId: string, courseId: string) => {
@@ -132,10 +171,81 @@ export function AdminUsers() {
         }
     };
 
+    const updateUserStats = async (userId: string, payload: { xpDelta?: number; xpTotal?: number; streakCount?: number }) => {
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/stats`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.user) {
+                setSelectedUser(data.user);
+                fetchUsers(search);
+            } else {
+                alert(data.error || "Update failed");
+            }
+        } catch (e) {
+            alert("Update failed");
+        }
+    };
+
     if (loading) return <div className="text-slate-500 font-mono animate-pulse">Loading users...</div>;
 
     return (
         <div className="space-y-6">
+            {/* Create User */}
+            <form onSubmit={handleCreateUser} className="bg-slate-900 border border-slate-800 rounded p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+                <input
+                    type="text"
+                    placeholder="Full Name"
+                    className="bg-slate-950 border border-slate-700 p-2 text-white"
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    required
+                />
+                <input
+                    type="email"
+                    placeholder="Email"
+                    className="bg-slate-950 border border-slate-700 p-2 text-white"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                    required
+                />
+                <input
+                    type="tel"
+                    placeholder="Phone"
+                    className="bg-slate-950 border border-slate-700 p-2 text-white"
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                    required
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    className="bg-slate-950 border border-slate-700 p-2 text-white"
+                    value={createForm.password}
+                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                    required
+                />
+                <select
+                    className="bg-slate-950 border border-slate-700 p-2 text-white"
+                    value={createForm.role}
+                    onChange={(e) => setCreateForm({ ...createForm, role: e.target.value as "student" | "admin" })}
+                >
+                    <option value="student">Student</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <GameButton type="submit" disabled={creating}>
+                    {creating ? "CREATING..." : "CREATE USER"}
+                </GameButton>
+                {createError && (
+                    <div className="lg:col-span-6 text-xs text-red-400 font-mono">
+                        {createError}
+                    </div>
+                )}
+            </form>
+
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="flex gap-2">
                 <div className="flex-grow relative">
@@ -247,8 +357,8 @@ export function AdminUsers() {
                             <h4 className="font-heading text-primary mb-3">ENROLLED COURSES ({selectedUser.unlockedCourses?.length || 0})</h4>
                             {selectedUser.unlockedCourses?.length > 0 ? (
                                 <div className="space-y-2">
-                                    {selectedUser.unlockedCourses.map(course => (
-                                        <div key={course._id} className="flex justify-between items-center bg-slate-800 p-3 rounded">
+                                    {selectedUser.unlockedCourses.map((course, idx) => (
+                                        <div key={course?._id || `${selectedUser._id}-unlock-${idx}`} className="flex justify-between items-center bg-slate-800 p-3 rounded">
                                             <span className="text-white">{course.title}</span>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xs text-slate-500">{course.isFree ? "FREE" : `${course.price} EGP`}</span>
@@ -268,8 +378,8 @@ export function AdminUsers() {
                             <h4 className="font-heading text-secondary mb-3">COMPLETED COURSES ({selectedUser.completedCourses?.length || 0})</h4>
                             {selectedUser.completedCourses?.length > 0 ? (
                                 <div className="flex flex-wrap gap-2">
-                                    {selectedUser.completedCourses.map(course => (
-                                        <span key={course._id} className="bg-secondary/20 text-secondary px-3 py-1 rounded text-sm">
+                                    {selectedUser.completedCourses.map((course, idx) => (
+                                        <span key={course?._id || `${selectedUser._id}-completed-${idx}`} className="bg-secondary/20 text-secondary px-3 py-1 rounded text-sm">
                                             ✓ {course.title}
                                         </span>
                                     ))}
@@ -277,6 +387,48 @@ export function AdminUsers() {
                             ) : (
                                 <p className="text-slate-500 text-sm">No courses completed</p>
                             )}
+                        </div>
+
+                        <div className="mb-6">
+                            <h4 className="font-heading text-primary mb-3">PLAYER CONTROL</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="bg-slate-800/50 p-3 rounded">
+                                    <label className="text-xs text-slate-400 font-mono">ADD XP</label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-900 border border-slate-700 p-2 text-white mt-2"
+                                        value={xpDelta}
+                                        onChange={(e) => setXpDelta(Number(e.target.value))}
+                                    />
+                                    <GameButton size="sm" className="mt-2 w-full" onClick={() => updateUserStats(selectedUser._id, { xpDelta })}>
+                                        APPLY
+                                    </GameButton>
+                                </div>
+                                <div className="bg-slate-800/50 p-3 rounded">
+                                    <label className="text-xs text-slate-400 font-mono">SET TOTAL XP</label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-900 border border-slate-700 p-2 text-white mt-2"
+                                        value={xpTotal}
+                                        onChange={(e) => setXpTotal(Number(e.target.value))}
+                                    />
+                                    <GameButton size="sm" className="mt-2 w-full" onClick={() => updateUserStats(selectedUser._id, { xpTotal })}>
+                                        APPLY
+                                    </GameButton>
+                                </div>
+                                <div className="bg-slate-800/50 p-3 rounded">
+                                    <label className="text-xs text-slate-400 font-mono">SET STREAK</label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-900 border border-slate-700 p-2 text-white mt-2"
+                                        value={streakCount}
+                                        onChange={(e) => setStreakCount(Number(e.target.value))}
+                                    />
+                                    <GameButton size="sm" className="mt-2 w-full" onClick={() => updateUserStats(selectedUser._id, { streakCount })}>
+                                        APPLY
+                                    </GameButton>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="flex justify-between items-center">

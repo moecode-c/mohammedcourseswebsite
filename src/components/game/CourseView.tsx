@@ -133,16 +133,16 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
     };
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-80px)]">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[calc(100vh-80px)]">
             {/* Sidebar: Sections List */}
-            <div className="w-full lg:w-1/4 bg-slate-900 border-r border-slate-700 overflow-y-auto h-[50vh] lg:h-auto">
-                <div className="p-4 border-b border-slate-700 font-heading text-lg">
+            <div className="w-full lg:w-1/4 bg-slate-900 border-r border-slate-700 overflow-y-auto max-h-[32vh] sm:max-h-[45vh] lg:max-h-none lg:h-auto">
+                <div className="p-3 sm:p-4 border-b border-slate-700 font-heading text-base sm:text-lg">
                     STAGES
                 </div>
                 {/* Certificate / Access Button Section */}
                 <div className="border-b border-slate-800 bg-slate-800/20">
                     {!isCourseLocked ? (
-                        <div className="p-4">
+                        <div className="p-3 sm:p-4">
                             {!allSectionsCompleted ? (
                                 <div className="w-full flex flex-col items-center justify-center gap-1 p-3 bg-slate-800/50 text-slate-500 border border-slate-700 rounded font-mono text-sm cursor-not-allowed text-center">
                                     <Award className="w-4 h-4" />
@@ -162,15 +162,15 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                             )}
                         </div>
                     ) : (
-                        <div className="p-4">
+                        <div className="p-3 sm:p-4">
                             {isPendingAccess ? (
-                                <div className="w-full p-3 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 rounded font-mono text-xs text-center flex items-center justify-center gap-2">
+                                <div className="w-full p-3 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 rounded font-mono text-[10px] sm:text-xs text-center flex items-center justify-center gap-2">
                                     <Lock className="w-3 h-3" /> VERIFICATION PENDING
                                 </div>
                             ) : (
                                 <GameButton
                                     variant="secondary"
-                                    className="w-full text-xs font-press-start shadow-[0_0_15px_rgba(255,0,255,0.3)]"
+                                    className="w-full text-[10px] sm:text-xs font-press-start shadow-[0_0_15px_rgba(255,0,255,0.3)]"
                                     onClick={() => setShowUnlockModal(true)}
                                 >
                                     REQUEST ACCESS
@@ -190,14 +190,14 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                             <button
                                 key={section._id}
                                 onClick={() => setCurrentSection(section)}
-                                className={`p-4 text-left border-b border-slate-800 transition-colors flex items-center justify-between
+                                className={`p-3 sm:p-4 text-left border-b border-slate-800 transition-colors flex items-center justify-between
                             ${isActive ? "bg-primary/20 text-primary border-l-4 border-l-primary" : "text-slate-400 hover:bg-slate-800"}
                             ${isLocked ? "opacity-70 group" : ""}
                         `}
                             >
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-mono mb-1">STAGE {index + 1}</span>
-                                    <span className="font-bold text-base">{section.title}</span>
+                                    <span className="text-xs sm:text-sm font-mono mb-1">STAGE {index + 1}</span>
+                                    <span className="font-bold text-sm sm:text-base">{section.title}</span>
                                 </div>
                                 <div>
                                     {isLocked ? <Lock className="w-4 h-4" /> : isCompleted ? <CheckCircle className="w-4 h-4 text-primary" /> : null}
@@ -209,11 +209,11 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
             </div>
 
             {/* Main Content Area */}
-            <div className="w-full lg:w-3/4 p-6 relative">
+            <div className="w-full lg:w-3/4 p-4 sm:p-6 relative">
 
                 {/* XP Toast */}
                 {xpGained && (
-                    <div className="absolute top-10 right-10 animate-bounce bg-primary text-black font-heading px-4 py-2 rounded shadow-[0_0_20px_var(--color-primary)] z-50">
+                    <div className="absolute top-4 right-4 sm:top-10 sm:right-10 animate-bounce bg-primary text-black font-heading px-3 sm:px-4 py-2 rounded shadow-[0_0_20px_var(--color-primary)] z-50 text-sm sm:text-base">
                         +{xpGained} XP
                     </div>
                 )}
@@ -221,7 +221,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                 {isCourseLocked && !course.sections.some((s: any) => !s.isLocked) ? (
                     <div className="h-full flex flex-col items-center justify-center text-center">
                         <Lock className="w-20 h-20 text-slate-600 mb-6" />
-                        <h2 className="text-3xl font-heading mb-4">ACCESS DENIED</h2>
+                        <h2 className="text-xl sm:text-3xl font-heading mb-4">ACCESS DENIED</h2>
                         <p className="max-w-md text-slate-400 mb-8">This mission requires clearance level: PAID. Please submit a request to unlock.</p>
 
                         {isPendingAccess ? (
@@ -237,30 +237,30 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                     <>
                         {currentSection ? (
                             <div className="h-full flex flex-col">
-                                <header className="mb-8 border-b border-slate-700 pb-6">
-                                    <h2 className="text-4xl lg:text-5xl font-heading text-primary text-shadow">{currentSection.title}</h2>
+                                <header className="mb-6 sm:mb-8 border-b border-slate-700 pb-4 sm:pb-6">
+                                    <h2 className="text-2xl sm:text-3xl lg:text-5xl font-heading text-primary text-shadow break-words">{currentSection.title}</h2>
                                 </header>
 
                                 {currentSection.isLocked ? (
                                     <div className="flex-grow flex flex-col items-center justify-center bg-black/30 border border-slate-700 rounded p-8">
                                         <Lock className="w-16 h-16 text-arcade mb-4" />
-                                        <h3 className="text-2xl font-heading text-arcade mb-2">RESTRICTED AREA</h3>
+                                        <h3 className="text-xl sm:text-2xl font-heading text-arcade mb-2">RESTRICTED AREA</h3>
                                         {/* Improved Price Display */}
                                         <div className="flex flex-col items-center gap-2 mb-6">
                                             <span className="text-slate-400 font-mono text-center">Unlock Full Access for Only</span>
                                             {course.isFree ? (
-                                                <span className="text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">FREE</span>
+                                                <span className="text-2xl sm:text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">FREE</span>
                                             ) : (
                                                 <div className="flex flex-col items-center">
                                                     {course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice < course.price ? (
                                                         <>
                                                             <span className="text-sm font-mono text-slate-500 line-through decoration-arcade mb-1">{course.price} EGP</span>
-                                                            <span className="text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)] animate-pulse">
+                                                            <span className="text-2xl sm:text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)] animate-pulse">
                                                                 {course.discountPrice} EGP
                                                             </span>
                                                         </>
                                                     ) : (
-                                                        <span className="text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">
+                                                        <span className="text-2xl sm:text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">
                                                             {course.price} EGP
                                                         </span>
                                                     )}
@@ -344,6 +344,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                             )}
                                                             <div
                                                                 className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-xl md:text-2xl"
+                                                                    className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-base sm:text-lg md:text-2xl break-words"
                                                             >
                                                                 {currentSection.content}
                                                             </div>
@@ -386,6 +387,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                     return (
                                                         <div
                                                             className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-xl md:text-2xl"
+                                                                className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-base sm:text-lg md:text-2xl break-words"
                                                         >
                                                             {currentSection.content}
                                                         </div>

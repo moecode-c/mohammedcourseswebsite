@@ -6,6 +6,7 @@ import User from "@/models/User";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import mongoose from "mongoose";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
     req: Request,
@@ -124,6 +125,10 @@ export async function PUT(
         if (!updatedCourse) {
             return NextResponse.json({ error: "Not Found" }, { status: 404 });
         }
+
+        revalidatePath("/courses", "page");
+        revalidatePath(`/courses/${id}`, "page");
+        revalidatePath("/dashboard", "page");
 
         return NextResponse.json({ course: updatedCourse });
     } catch (error) {

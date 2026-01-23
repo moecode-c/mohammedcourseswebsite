@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { GameCard } from "@/components/ui/GameCard";
 import { GameButton } from "@/components/ui/GameButton";
 import { Navbar } from "@/components/ui/Navbar";
@@ -10,8 +12,10 @@ import CertificateRequest from "@/models/CertificateRequest";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { Play, Zap, Trophy, BookOpen, Target, ArrowRight, Flame, Tag } from "lucide-react";
+import { unstable_noStore as noStore } from "next/cache";
 
 async function getData() {
+    noStore();
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
     if (!token) return { courses: [], user: null, certificateRequests: [] };

@@ -7,6 +7,7 @@ import { AdminStats } from "@/components/admin/AdminStats";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { AdminCertificates } from "@/components/admin/AdminCertificates";
+import { AdminCourseDashboard } from "@/components/admin/AdminCourseDashboard";
 import { GameButton } from "@/components/ui/GameButton";
 import { CheckCircle, XCircle, Trash } from "lucide-react";
 
@@ -225,6 +226,36 @@ export default function AdminDashboard() {
         } catch (e) { alert("Error creating course"); }
     };
 
+    const grantCourseAccess = async (userId: string, courseId: string) => {
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/grant-access`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ courseId })
+            });
+            if (res.ok) {
+                await fetchUsersCount();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const revokeCourseAccess = async (userId: string, courseId: string) => {
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/grant-access`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ courseId })
+            });
+            if (res.ok) {
+                await fetchUsersCount();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     return (
         <main className="min-h-screen bg-slate-950 text-white flex flex-col lg:flex-row">
             <AdminSidebar currentView={currentView} setCurrentView={setCurrentView} />
@@ -270,6 +301,16 @@ export default function AdminDashboard() {
                         />
                         <AdminAnalytics users={allUsers} requests={requests} />
                     </>
+                )}
+
+                {currentView === "course-dashboard" && (
+                    <AdminCourseDashboard
+                        courses={courses}
+                        users={allUsers}
+                        requests={requests}
+                        onGrantAccess={grantCourseAccess}
+                        onRevokeAccess={revokeCourseAccess}
+                    />
                 )}
 
                 {currentView === "users" && <AdminUsers />}

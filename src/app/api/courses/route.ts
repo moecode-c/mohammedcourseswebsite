@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
     try {
@@ -34,6 +35,9 @@ export async function POST(req: Request) {
         await dbConnect();
         const body = await req.json();
         const course = await Course.create(body);
+
+        revalidatePath("/courses", "page");
+        revalidatePath("/dashboard", "page");
 
         return NextResponse.json({ course }, { status: 201 });
     } catch (error) {
