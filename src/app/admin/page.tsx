@@ -32,7 +32,7 @@ interface Course {
 interface ContactMessage {
     _id: string;
     name: string;
-    email: string;
+    phone: string;
     message: string;
     source: string;
     createdAt: string;
@@ -49,7 +49,17 @@ export default function AdminDashboard() {
 
     // Course Management State
     const [showCreateCourse, setShowCreateCourse] = useState(false);
-    const [newCourse, setNewCourse] = useState({ title: "", description: "", price: 0, isFree: false, isFeatured: false, thumbnail: "", difficulty: "beginner" });
+    const [newCourse, setNewCourse] = useState({
+        title: "",
+        description: "",
+        price: 0,
+        isFree: false,
+        isFeatured: false,
+        thumbnail: "",
+        difficulty: "beginner",
+        discountPrice: 0,
+        discountActive: false
+    });
     const [uploading, setUploading] = useState(false);
     const [courseSearch, setCourseSearch] = useState("");
 
@@ -199,7 +209,17 @@ export default function AdminDashboard() {
             if (res.ok) {
                 alert("Course Created!");
                 setShowCreateCourse(false);
-                setNewCourse({ title: "", description: "", price: 0, isFree: false, isFeatured: false, thumbnail: "", difficulty: "beginner" });
+                setNewCourse({
+                    title: "",
+                    description: "",
+                    price: 0,
+                    isFree: false,
+                    isFeatured: false,
+                    thumbnail: "",
+                    difficulty: "beginner",
+                    discountPrice: 0,
+                    discountActive: false
+                });
                 fetchCourses();
             }
         } catch (e) { alert("Error creating course"); }
@@ -310,7 +330,7 @@ export default function AdminDashboard() {
                                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                                             <div className="flex flex-wrap gap-2 items-center">
                                                 <span className="text-xs font-mono bg-primary/20 text-primary px-2 rounded">FROM: {msg.name}</span>
-                                                <span className="text-xs font-mono bg-secondary/20 text-secondary px-2 rounded">{msg.email}</span>
+                                                <span className="text-xs font-mono bg-secondary/20 text-secondary px-2 rounded">PHONE: {msg.phone}</span>
                                                 <span className="text-xs font-mono bg-slate-800 text-slate-300 px-2 rounded">SOURCE: {msg.source}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
@@ -374,6 +394,27 @@ export default function AdminDashboard() {
                                         {newCourse.thumbnail && <div className="text-xs text-primary truncate px-2">{newCourse.thumbnail}</div>}
                                         <label className="flex items-center gap-2 text-white cursor-pointer"><input type="checkbox" checked={newCourse.isFree} onChange={e => setNewCourse({ ...newCourse, isFree: e.target.checked, price: e.target.checked ? 0 : newCourse.price })} /> Free Access</label>
                                         <label className="flex items-center gap-2 text-white cursor-pointer"><input type="checkbox" checked={newCourse.isFeatured} onChange={e => setNewCourse({ ...newCourse, isFeatured: e.target.checked })} /> Featured</label>
+                                    </div>
+
+                                    {/* Discount Row */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-slate-950/30 p-3 rounded border border-slate-800">
+                                        <label className="flex items-center gap-2 text-yellow-400 cursor-pointer text-sm font-bold">
+                                            <input
+                                                type="checkbox"
+                                                checked={newCourse.discountActive}
+                                                onChange={e => setNewCourse({ ...newCourse, discountActive: e.target.checked })}
+                                                disabled={newCourse.isFree}
+                                            /> 🏷️ Sales Active
+                                        </label>
+                                        {newCourse.discountActive && !newCourse.isFree && (
+                                            <input
+                                                type="number"
+                                                placeholder="Discount Price (EGP)"
+                                                className="bg-slate-950 border border-yellow-500/30 p-2 text-yellow-400 w-full text-sm"
+                                                value={newCourse.discountPrice || ""}
+                                                onChange={e => setNewCourse({ ...newCourse, discountPrice: Number(e.target.value) })}
+                                            />
+                                        )}
                                     </div>
                                     <GameButton type="submit">CREATE COURSE</GameButton>
                                 </form>

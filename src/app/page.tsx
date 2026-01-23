@@ -4,11 +4,12 @@ import { GameButton } from "@/components/ui/GameButton";
 import { GameCard } from "@/components/ui/GameCard";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
-import { Gamepad2, Brain, Trophy, Ghost, Star } from "lucide-react";
+import { Gamepad2, Brain, Trophy, Ghost, Star, Tag } from "lucide-react";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import Squares from "@/components/ui/Squares";
 import ModelViewerWrapper from "@/components/ui/ModelViewerWrapper";
+import { ContactSection } from "@/components/ui/ContactSection";
 
 export default async function Home() {
   await dbConnect();
@@ -47,13 +48,13 @@ export default async function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link href="/dashboard">
-              <GameButton size="lg" className="shadow-[0_0_20px_var(--color-primary)] font-press-start text-xs">
+              <GameButton size="lg" className="shadow-[0_0_20px_rgba(34,197,94,0.3)] font-press-start text-xs">
                 Press Start
               </GameButton>
             </Link>
             <Link href="/about">
               <GameButton variant="ghost" size="lg" className="font-press-start text-xs">
-                Tutorial
+                ABOUT
               </GameButton>
             </Link>
           </div>
@@ -85,6 +86,12 @@ export default async function Home() {
                           fill
                           className="object-cover"
                         />
+                        {/* Discount Badge */}
+                        {course.discountActive && !course.isFree && (
+                          <div className="absolute top-2 right-2 bg-arcade text-black font-press-start text-[8px] px-2 py-1 rounded shadow-lg animate-bounce flex items-center gap-1 z-20">
+                            <Tag className="w-3 h-3" /> SALE
+                          </div>
+                        )}
                       </div>
                       <h3 className="font-heading text-xl text-primary mb-2 line-clamp-1">{course.title}</h3>
                       <p className="text-slate-400 text-sm line-clamp-2 mb-4 font-mono">{course.description}</p>
@@ -96,9 +103,22 @@ export default async function Home() {
                           }`}>
                           {course.difficulty.toUpperCase()}
                         </span>
-                        <span className="font-bold text-white font-mono">
-                          {course.isFree ? "FREE TO PLAY" : `${course.price} EGP`}
-                        </span>
+                        <div className="flex flex-col items-end">
+                          {course.discountActive && !course.isFree && course.discountPrice ? (
+                            <>
+                              <span className="text-[10px] text-slate-500 line-through">
+                                {course.price} EGP
+                              </span>
+                              <span className="font-bold text-arcade font-mono animate-pulse">
+                                {course.discountPrice} EGP
+                              </span>
+                            </>
+                          ) : (
+                            <span className="font-bold text-white font-mono">
+                              {course.isFree ? "FREE TO PLAY" : `${course.price} EGP`}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </GameCard>
                   </Link>
@@ -181,7 +201,9 @@ export default async function Home() {
         </GameCard>
       </section>
 
+      <ContactSection source="home" />
+
       <Footer />
-    </main >
+    </main>
   );
 }

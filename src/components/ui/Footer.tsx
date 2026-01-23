@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Github, Twitter, Youtube, Trophy, Home, BookOpen, LogIn } from "lucide-react";
+import { Youtube, Trophy, Home, BookOpen, LogIn, Linkedin, Globe } from "lucide-react";
 
 export function Footer() {
     return (
@@ -8,6 +8,11 @@ export function Footer() {
                 {/* Brand */}
                 <div>
                     <div className="font-heading text-xl text-white mb-4">&lt;CODE_QUEST /&gt;</div>
+                    <img
+                        src="/gifs/terminal.gif"
+                        alt="Terminal"
+                        className="w-32 h-auto mb-4 opacity-90"
+                    />
                     <p className="text-slate-400 text-lg max-w-xs">
                         Level up your development skills in a gamified environment. Master the code, claim the victory.
                     </p>
@@ -44,9 +49,10 @@ export function Footer() {
                 <div>
                     <h4 className="font-heading text-secondary text-sm mb-4">COMMUNITY</h4>
                     <div className="flex gap-4">
-                        <a href="#" className="text-slate-400 hover:text-white transition-colors"><Github className="w-8 h-8" /></a>
-                        <a href="#" className="text-slate-400 hover:text-white transition-colors"><Twitter className="w-8 h-8" /></a>
-                        <a href="#" className="text-slate-400 hover:text-white transition-colors"><Youtube className="w-8 h-8" /></a>
+
+                        <a href="https://moeportfoliov2.vercel.app" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="Portfolio"><Globe className="w-8 h-8" /></a>
+                        <a href="https://www.linkedin.com/in/mohammed-essam-el-din-716b64364/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="LinkedIn"><Linkedin className="w-8 h-8" /></a>
+                        <a href="https://www.youtube.com/@codingtutorialMIU/videos" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="YouTube"><Youtube className="w-8 h-8" /></a>
                     </div>
                 </div>
             </div>

@@ -7,11 +7,11 @@ import { cookies } from "next/headers";
 export async function POST(req: Request) {
     try {
         await dbConnect();
-        const { name, email, password, role } = await req.json();
+        const { name, email, password, phone, role } = await req.json();
 
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !phone) {
             return NextResponse.json(
-                { error: "Missing required fields" },
+                { error: "Missing required fields (Name, Email, Password, and Phone are required)" },
                 { status: 400 }
             );
         }
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
         const user = await User.create({
             name,
             email,
+            phone,
             password: hashedPassword,
             role: userRole,
         });

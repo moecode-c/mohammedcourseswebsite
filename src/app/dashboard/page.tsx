@@ -1,6 +1,7 @@
 import { GameCard } from "@/components/ui/GameCard";
 import { GameButton } from "@/components/ui/GameButton";
 import { Navbar } from "@/components/ui/Navbar";
+import { Footer } from "@/components/ui/Footer";
 import Link from "next/link";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
@@ -8,7 +9,7 @@ import User from "@/models/User";
 import CertificateRequest from "@/models/CertificateRequest";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
-import { Play, Zap, Trophy, BookOpen, Target, ArrowRight, Flame } from "lucide-react";
+import { Play, Zap, Trophy, BookOpen, Target, ArrowRight, Flame, Tag } from "lucide-react";
 
 async function getData() {
     const cookieStore = await cookies();
@@ -76,10 +77,10 @@ export default async function DashboardPage() {
     const streakCount = user.streak?.count || 0;
 
     return (
-        <main className="min-h-screen bg-slate-950 text-white pb-20">
+        <main className="min-h-screen bg-slate-950 text-white flex flex-col">
             <Navbar />
 
-            <div className="max-w-7xl mx-auto px-6 py-10">
+            <div className="max-w-7xl mx-auto px-6 py-10 flex-1">
                 {/* Stats Section */}
                 <section className="mb-12">
                     <h2 className="text-xl font-heading text-slate-400 mb-6">YOUR PROFILE</h2>
@@ -144,7 +145,6 @@ export default async function DashboardPage() {
                 )}
 
                 {/* My Courses Header */}
-                {/* My Courses Header */}
                 <header className="mb-8 flex flex-col md:flex-row md:items-end gap-4">
                     <div>
                         <div className="flex flex-wrap items-center gap-4">
@@ -182,8 +182,15 @@ export default async function DashboardPage() {
                                             )}
 
                                             {isCompleted && (
-                                                <div className="absolute top-2 right-2 bg-primary text-black text-xs font-mono px-2 py-1 rounded">
+                                                <div className="absolute top-2 left-2 bg-primary text-black text-[10px] font-mono px-2 py-1 rounded z-20">
                                                     ✓ COMPLETED
+                                                </div>
+                                            )}
+
+                                            {/* Discount Badge */}
+                                            {course.discountActive && !course.isFree && (
+                                                <div className="absolute top-2 right-2 bg-arcade text-black font-press-start text-[8px] px-2 py-1 rounded shadow-lg animate-bounce flex items-center gap-1 z-20">
+                                                    <Tag className="w-3 h-3" /> SALE
                                                 </div>
                                             )}
                                         </div>
@@ -193,7 +200,7 @@ export default async function DashboardPage() {
                                                 <h3 className="font-heading text-lg text-primary">{course.title}</h3>
                                                 {course.difficulty && (
                                                     <span className={`text-[10px] font-mono px-1.5 rounded uppercase mt-1 inline-block border ${course.difficulty === 'beginner' ? 'bg-green-500/20 text-green-500 border-green-500/30' :
-                                                        course.difficulty === 'intermediate' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' :
+                                                        course.difficulty === 'intermediate' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30' :
                                                             'bg-red-500/20 text-red-500 border-red-500/30'
                                                         }`}>
                                                         {course.difficulty}
@@ -201,9 +208,22 @@ export default async function DashboardPage() {
                                                 )}
                                             </div>
                                             {course.isFree ? (
-                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono self-start md:self-auto">FREE PLAY</span>
+                                                <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono self-start md:self-auto uppercase tracking-tighter">FREE PLAY</span>
                                             ) : (
-                                                <span className="text-lg md:text-xl font-bold font-press-start text-arcade self-start md:self-auto">{course.price} EGP</span>
+                                                <div className="flex flex-col items-end">
+                                                    {course.discountActive && course.discountPrice ? (
+                                                        <>
+                                                            <span className="text-[10px] font-mono text-slate-500 line-through">
+                                                                {course.price} EGP
+                                                            </span>
+                                                            <span className="text-lg md:text-xl font-bold font-press-start text-arcade self-start md:self-auto animate-pulse">
+                                                                {course.discountPrice} EGP
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-lg md:text-xl font-bold font-press-start text-arcade self-start md:self-auto">{course.price} EGP</span>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
 
@@ -239,6 +259,7 @@ export default async function DashboardPage() {
                     </div>
                 )}
             </div>
+            <Footer />
         </main>
     );
 }

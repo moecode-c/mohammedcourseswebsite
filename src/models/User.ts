@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface IUser extends Document {
     name: string;
     email: string;
+    phone?: string;
     password?: string;
     role: "student" | "admin";
 
@@ -28,6 +29,7 @@ const UserSchema: Schema<IUser> = new Schema(
     {
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
+        phone: { type: String },
         password: { type: String, select: false }, // OAuth users might not have password
         role: { type: String, enum: ["student", "admin"], default: "student" },
 

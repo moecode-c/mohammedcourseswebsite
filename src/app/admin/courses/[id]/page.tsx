@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { GameButton } from "@/components/ui/GameButton";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { ArrowLeft, ChevronUp, ChevronDown, Edit, Trash2, Save, Plus, X } from "lucide-react";
+import { ArrowLeft, ChevronUp, ChevronDown, Edit, Trash2, Save, Plus, X, FileUp } from "lucide-react";
 
 interface Question {
     questionText: string;
@@ -38,6 +38,81 @@ interface Course {
     sections: Section[];
 }
 
+const parseCsvLine = (line: string) => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && next === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if (char === "," && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+            continue;
+        }
+
+        current += char;
+    }
+
+    result.push(current.trim());
+    return result;
+};
+
+const parseQuizCsv = (csvText: string) => {
+    const rows = csvText
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+    if (rows.length === 0) return [] as Question[];
+
+    const header = parseCsvLine(rows[0]).map(h => h.toLowerCase());
+    const hasHeader = header.some(h => h.includes("question") || h.includes("option") || h.includes("correct"));
+    const startIndex = hasHeader ? 1 : 0;
+
+    const questions: Question[] = [];
+
+    for (let i = startIndex; i < rows.length; i++) {
+        const cols = parseCsvLine(rows[i]);
+        if (cols.length < 3) continue;
+
+        const questionText = cols[0]?.trim();
+        const options = cols.slice(1, cols.length - 1).map(opt => opt.trim()).filter(Boolean);
+        const rawCorrect = cols[cols.length - 1]?.trim();
+        let correctOptionIndex = Number(rawCorrect);
+
+        if (Number.isNaN(correctOptionIndex)) {
+            correctOptionIndex = 0;
+        }
+
+        if (correctOptionIndex >= 1 && correctOptionIndex <= options.length) {
+            correctOptionIndex = correctOptionIndex - 1;
+        }
+
+        if (!questionText || options.length < 2) continue;
+
+        if (correctOptionIndex < 0 || correctOptionIndex >= options.length) {
+            correctOptionIndex = 0;
+        }
+
+        questions.push({ questionText, options, correctOptionIndex });
+    }
+
+    return questions;
+};
+
 export default function EditCoursePage() {
     const params = useParams();
     const router = useRouter();
@@ -61,6 +136,8 @@ export default function EditCoursePage() {
         isFree: boolean;
         questions: Question[];
     }>({ title: "", content: "", videoUrl: "", linkUrl: "", type: "text", isFree: false, questions: [] });
+
+    const [csvImportError, setCsvImportError] = useState("");
 
     // Language Input Buffer
     const [languageInput, setLanguageInput] = useState("");
@@ -123,6 +200,8 @@ export default function EditCoursePage() {
                     isFeatured: course.isFeatured,
                     difficulty: course.difficulty,
                     thumbnail: course.thumbnail,
+                    discountPrice: course.discountPrice,
+                    discountActive: course.discountActive,
 
                     languages: languageInput.split(",").map(s => s.trim()).filter(Boolean)
                 }),
@@ -150,6 +229,26 @@ export default function EditCoursePage() {
                 setCourse({ ...course, thumbnail: data.url });
             }
         } catch (err) { alert("Upload failed"); }
+    };
+
+    const handleQuizCsvImport = async (file?: File) => {
+        if (!file) return;
+        setCsvImportError("");
+
+        try {
+            const text = await file.text();
+            const parsed = parseQuizCsv(text);
+
+            if (!parsed.length) {
+                setCsvImportError("No valid questions found. Expected columns: question, options..., correctIndex.");
+                return;
+            }
+
+            setEditForm({ ...editForm, questions: parsed });
+        } catch (err) {
+            console.error(err);
+            setCsvImportError("Failed to import CSV.");
+        }
     };
 
     const handleAddSection = async (e: React.FormEvent) => {
@@ -445,6 +544,29 @@ export default function EditCoursePage() {
                                             <GameButton type="button" size="sm" onClick={() => setEditForm({ ...editForm, questions: [...editForm.questions, { questionText: "", options: ["", ""], correctOptionIndex: 0 }] })}>
                                                 <Plus className="w-3 h-3 mr-1" /> ADD QUESTION
                                             </GameButton>
+                                        </div>
+                                        <div className="bg-slate-950 border border-slate-800 rounded p-3 sm:p-4">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                <div>
+                                                    <p className="text-sm text-slate-200 font-bold">Import from CSV</p>
+                                                    <p className="text-xs text-slate-500 font-mono">
+                                                        Format: question, option1, option2, option3, option4, correctIndex (0 or 1-based).
+                                                    </p>
+                                                </div>
+                                                <label className="inline-flex items-center gap-2 text-xs text-primary cursor-pointer">
+                                                    <FileUp className="w-4 h-4" />
+                                                    <input
+                                                        type="file"
+                                                        accept=".csv"
+                                                        className="hidden"
+                                                        onChange={(e) => handleQuizCsvImport(e.target.files?.[0])}
+                                                    />
+                                                    IMPORT CSV
+                                                </label>
+                                            </div>
+                                            {csvImportError && (
+                                                <p className="text-xs text-red-400 mt-2">{csvImportError}</p>
+                                            )}
                                         </div>
                                         <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
                                             {editForm.questions.map((q, qIdx) => (

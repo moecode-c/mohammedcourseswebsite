@@ -17,9 +17,10 @@ interface CourseViewProps {
 }
 
 export function CourseView({ course, user, hasPendingCertificate = false, hasPendingAccessRequest = false }: CourseViewProps) {
+    const router = useRouter();
     const [currentSection, setCurrentSection] = useState(course.sections[0]);
-    const [completedSections, setCompletedSections] = useState<string[]>(user.completedSections || []);
-    const [answeredQuestions, setAnsweredQuestions] = useState<string[]>(user.answeredQuestions || []);
+    const [completedSections, setCompletedSections] = useState<string[]>(user?.completedSections || []);
+    const [answeredQuestions, setAnsweredQuestions] = useState<string[]>(user?.answeredQuestions || []);
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [xpGained, setXpGained] = useState<number | null>(null);
     const [isPendingAccess, setIsPendingAccess] = useState(hasPendingAccessRequest);
@@ -34,6 +35,10 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
     const allSectionsCompleted = course.sections.every((s: any) => completedSections.includes(s._id));
 
     const handleComplete = async (sectionId: string) => {
+        if (!user) {
+            router.push("/login");
+            return;
+        }
         if (completedSections.includes(sectionId)) return;
 
         try {
@@ -59,6 +64,10 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
 
     const submitUnlockRequest = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) {
+            router.push("/login");
+            return;
+        }
         setPaymentStatus("submitting");
         try {
             const res = await fetch(`/api/courses/${course._id}/unlock`, {
@@ -93,6 +102,10 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
 
     const submitCertificateRequest = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) {
+            router.push("/login");
+            return;
+        }
         setCertStatus("submitting");
         try {
             const res = await fetch("/api/certificates", {
@@ -126,6 +139,47 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                 <div className="p-4 border-b border-slate-700 font-heading text-lg">
                     STAGES
                 </div>
+                {/* Certificate / Access Button Section */}
+                <div className="border-b border-slate-800 bg-slate-800/20">
+                    {!isCourseLocked ? (
+                        <div className="p-4">
+                            {!allSectionsCompleted ? (
+                                <div className="w-full flex flex-col items-center justify-center gap-1 p-3 bg-slate-800/50 text-slate-500 border border-slate-700 rounded font-mono text-sm cursor-not-allowed text-center">
+                                    <Award className="w-4 h-4" />
+                                    <span className="text-[10px]">Complete all sections to claim award</span>
+                                </div>
+                            ) : hasPendingCertificate ? (
+                                <div className="w-full flex items-center justify-center gap-2 p-3 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 rounded font-mono text-xs cursor-not-allowed">
+                                    <Award className="w-4 h-4" /> CERTIFICATE PENDING
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setShowCertificateModal(true)}
+                                    className="w-full flex items-center justify-center gap-2 p-3 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 hover:bg-yellow-500/20 transition rounded font-mono text-sm"
+                                >
+                                    <Award className="w-4 h-4" /> CLAIM CERTIFICATE
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="p-4">
+                            {isPendingAccess ? (
+                                <div className="w-full p-3 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 rounded font-mono text-xs text-center flex items-center justify-center gap-2">
+                                    <Lock className="w-3 h-3" /> VERIFICATION PENDING
+                                </div>
+                            ) : (
+                                <GameButton
+                                    variant="secondary"
+                                    className="w-full text-xs font-press-start shadow-[0_0_15px_rgba(255,0,255,0.3)]"
+                                    onClick={() => setShowUnlockModal(true)}
+                                >
+                                    REQUEST ACCESS
+                                </GameButton>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 <div className="flex flex-col">
                     {course.sections.map((section: any, index: number) => {
                         const isCompleted = completedSections.includes(section._id);
@@ -135,16 +189,15 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                         return (
                             <button
                                 key={section._id}
-                                disabled={isLocked}
                                 onClick={() => setCurrentSection(section)}
                                 className={`p-4 text-left border-b border-slate-800 transition-colors flex items-center justify-between
                             ${isActive ? "bg-primary/20 text-primary border-l-4 border-l-primary" : "text-slate-400 hover:bg-slate-800"}
-                            ${isLocked ? "opacity-50 cursor-not-allowed" : ""}
+                            ${isLocked ? "opacity-70 group" : ""}
                         `}
                             >
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-mono mb-1">STAGE {index + 1}</span>
-                                    <span className="font-bold text-sm">{section.title}</span>
+                                    <span className="text-sm font-mono mb-1">STAGE {index + 1}</span>
+                                    <span className="font-bold text-base">{section.title}</span>
                                 </div>
                                 <div>
                                     {isLocked ? <Lock className="w-4 h-4" /> : isCompleted ? <CheckCircle className="w-4 h-4 text-primary" /> : null}
@@ -153,29 +206,6 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                         );
                     })}
                 </div>
-
-                {/* Certificate Button */}
-                {!isCourseLocked && (
-                    <div className="p-4 border-t border-slate-800 mt-auto">
-                        {!allSectionsCompleted ? (
-                            <div className="w-full flex flex-col items-center justify-center gap-1 p-3 bg-slate-800/50 text-slate-500 border border-slate-700 rounded font-mono text-sm cursor-not-allowed">
-                                <Award className="w-4 h-4" />
-                                <span className="text-xs">Complete all sections to claim</span>
-                            </div>
-                        ) : hasPendingCertificate ? (
-                            <div className="w-full flex items-center justify-center gap-2 p-3 bg-slate-800/50 text-slate-400 border border-slate-700 rounded font-mono text-sm cursor-not-allowed">
-                                <Award className="w-4 h-4" /> CERTIFICATE PENDING
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => setShowCertificateModal(true)}
-                                className="w-full flex items-center justify-center gap-2 p-3 bg-yellow-500/10 text-yellow-500 border border-yellow-500/50 hover:bg-yellow-500/20 transition rounded font-mono text-sm"
-                            >
-                                <Award className="w-4 h-4" /> CLAIM CERTIFICATE
-                            </button>
-                        )}
-                    </div>
-                )}
             </div>
 
             {/* Main Content Area */}
@@ -189,13 +219,11 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                 )}
 
                 {isCourseLocked && !course.sections.some((s: any) => !s.isLocked) ? (
-                    // Entire Course Locked View (if specific logic needed, though we usually show free sections)
                     <div className="h-full flex flex-col items-center justify-center text-center">
                         <Lock className="w-20 h-20 text-slate-600 mb-6" />
                         <h2 className="text-3xl font-heading mb-4">ACCESS DENIED</h2>
                         <p className="max-w-md text-slate-400 mb-8">This mission requires clearance level: PAID. Please submit a request to unlock.</p>
 
-                        {/* Pending Request Indicator */}
                         {isPendingAccess ? (
                             <div className="flex flex-col items-center gap-2 max-w-md mx-auto p-4 bg-yellow-500/10 border border-yellow-500/50 rounded">
                                 <h3 className="text-yellow-500 font-heading">VERIFICATION PENDING</h3>
@@ -209,8 +237,8 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                     <>
                         {currentSection ? (
                             <div className="h-full flex flex-col">
-                                <header className="mb-6 border-b border-slate-700 pb-4">
-                                    <h2 className="text-3xl font-heading text-primary text-shadow">{currentSection.title}</h2>
+                                <header className="mb-8 border-b border-slate-700 pb-6">
+                                    <h2 className="text-4xl lg:text-5xl font-heading text-primary text-shadow">{currentSection.title}</h2>
                                 </header>
 
                                 {currentSection.isLocked ? (
@@ -221,18 +249,18 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                         <div className="flex flex-col items-center gap-2 mb-6">
                                             <span className="text-slate-400 font-mono text-center">Unlock Full Access for Only</span>
                                             {course.isFree ? (
-                                                <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">FREE</span>
+                                                <span className="text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">FREE</span>
                                             ) : (
                                                 <div className="flex flex-col items-center">
-                                                    {course.discountActive && course.discountPrice !== undefined ? (
+                                                    {course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice < course.price ? (
                                                         <>
                                                             <span className="text-sm font-mono text-slate-500 line-through decoration-arcade mb-1">{course.price} EGP</span>
-                                                            <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)] animate-pulse">
+                                                            <span className="text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)] animate-pulse">
                                                                 {course.discountPrice} EGP
                                                             </span>
                                                         </>
                                                     ) : (
-                                                        <span className="text-5xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">
+                                                        <span className="text-3xl md:text-4xl font-heading text-primary drop-shadow-[0_0_15px_rgba(57,255,20,0.5)]">
                                                             {course.price} EGP
                                                         </span>
                                                     )}
@@ -248,7 +276,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                             </div>
                                         ) : (
                                             <GameButton variant="secondary" size="lg" onClick={() => setShowUnlockModal(true)} className="animate-pulse shadow-[0_0_20px_var(--color-secondary)]">
-                                                UNLOCK NOW
+                                                REQUEST ACCESS
                                             </GameButton>
                                         )}
                                     </div>
@@ -263,48 +291,60 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                     return (
                                                         <>
                                                             {currentSection.videoUrl && (
-                                                                <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden relative group select-none">
+                                                                <>
+                                                                    <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden relative group select-none">
+                                                                        {(() => {
+                                                                            let videoId = "";
+                                                                            try {
+                                                                                const url = currentSection.videoUrl;
+                                                                                if (url.includes("v=")) {
+                                                                                    videoId = url.split("v=")[1].split("&")[0];
+                                                                                } else if (url.includes("youtu.be/")) {
+                                                                                    videoId = url.split("youtu.be/")[1].split("?")[0];
+                                                                                } else if (url.includes("embed/")) {
+                                                                                    videoId = url.split("embed/")[1].split("?")[0];
+                                                                                }
+                                                                                if (videoId.indexOf("?") !== -1) videoId = videoId.split("?")[0];
+                                                                                if (videoId.indexOf("/") !== -1) videoId = videoId.split("/")[0];
+                                                                            } catch (e) { console.error("Video parse error", e); }
 
-                                                                    {(() => {
-                                                                        let videoId = "";
-                                                                        try {
-                                                                            const url = currentSection.videoUrl;
-                                                                            if (url.includes("v=")) {
-                                                                                videoId = url.split("v=")[1].split("&")[0];
-                                                                            } else if (url.includes("youtu.be/")) {
-                                                                                videoId = url.split("youtu.be/")[1].split("?")[0];
-                                                                            } else if (url.includes("embed/")) {
-                                                                                videoId = url.split("embed/")[1].split("?")[0];
+                                                                            if (videoId) {
+                                                                                return (
+                                                                                    <>
+                                                                                        <div className="absolute top-0 right-0 w-32 h-16 z-20" title="Overlay"></div>
+                                                                                        <iframe
+                                                                                            src={`https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0`}
+                                                                                            title={currentSection.title}
+                                                                                            className="w-full h-full"
+                                                                                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                                                                            allowFullScreen
+                                                                                        />
+                                                                                    </>
+                                                                                );
+                                                                            } else {
+                                                                                return (
+                                                                                    <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+                                                                                        Invalid Video Link
+                                                                                    </div>
+                                                                                );
                                                                             }
-                                                                            // Clean any trailing params just in case
-                                                                            if (videoId.indexOf("?") !== -1) videoId = videoId.split("?")[0];
-                                                                            if (videoId.indexOf("/") !== -1) videoId = videoId.split("/")[0];
-                                                                        } catch (e) { console.error("Video parse error", e); }
-
-                                                                        if (videoId) {
-                                                                            return (
-                                                                                <>
-                                                                                    <div className="absolute top-0 right-0 w-32 h-16 z-20" title="Overlay"></div>
-                                                                                    <iframe
-                                                                                        src={`https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0`}
-                                                                                        title={currentSection.title}
-                                                                                        className="w-full h-full"
-                                                                                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                                                                        allowFullScreen
-                                                                                    />
-                                                                                </>
-                                                                            );
-                                                                        } else {
-                                                                            return (
-                                                                                <div className="absolute inset-0 flex items-center justify-center text-slate-500">
-                                                                                    Invalid Video Link
-                                                                                </div>
-                                                                            );
-                                                                        }
-                                                                    })()}
-                                                                </div>
+                                                                        })()}
+                                                                    </div>
+                                                                    {/* Video Security Disclaimer */}
+                                                                    <div className="mb-6 p-3 bg-red-400/10 border border-red-400/20 rounded flex items-center gap-3">
+                                                                        <div className="w-8 h-8 rounded-full bg-red-400/20 flex items-center justify-center shrink-0">
+                                                                            <span className="text-red-400 text-lg">🔒</span>
+                                                                        </div>
+                                                                        <div className="text-xs md:text-sm font-mono text-slate-400">
+                                                                            <span className="text-red-400 font-bold uppercase mr-2">Security Protocol:</span>
+                                                                            This video is unlisted and provided strictly for <span className="text-white">your account only</span>. Distribution of this link is prohibited and monitored.
+                                                                        </div>
+                                                                    </div>
+                                                                </>
                                                             )}
-                                                            <div className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap">
+                                                            <div
+                                                                className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-xl md:text-2xl"
+                                                            >
                                                                 {currentSection.content}
                                                             </div>
                                                         </>
@@ -344,7 +384,9 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                     );
                                                 default: // text
                                                     return (
-                                                        <div className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap">
+                                                        <div
+                                                            className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-xl md:text-2xl"
+                                                        >
                                                             {currentSection.content}
                                                         </div>
                                                     );
@@ -370,128 +412,133 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                             </div>
                         )}
                     </>
-                )}
-            </div>
+                )
+                }
+            </div >
 
             {/* Unlock Modal */}
-            {showUnlockModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <GameCard className="w-full max-w-lg bg-slate-900 border-primary shadow-[0_0_50px_rgba(57,255,20,0.1)]">
-                        <h3 className="text-2xl font-heading text-primary mb-2 text-center">UNLOCK ACCESS</h3>
-                        <div className="text-center mb-6">
-                            <span className="text-4xl font-heading text-white">{course.price} EGP</span>
-                        </div>
-                        <p className="text-slate-400 text-sm mb-6 font-mono">
-                            To unlock this mission pack, please transfer the fee via Instapay and submit your details below. An admin will verify your clearance.
-                        </p>
-
-                        {paymentStatus === "success" ? (
-                            <div className="bg-green-500/10 border border-green-500 text-green-500 p-6 text-center">
-                                <CheckCircle className="w-12 h-12 mx-auto mb-2" />
-                                <h4 className="font-heading text-xl">REQUEST SENT</h4>
-                                <p className="text-sm">Please wait for admin approval. You will be contacted shortly.</p>
+            {
+                showUnlockModal && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10050] overflow-y-auto flex items-start sm:items-center justify-center p-3 sm:p-4 py-6 sm:py-4">
+                        <GameCard className="w-full max-w-sm sm:max-w-lg bg-slate-900 border-primary shadow-[0_0_50px_rgba(57,255,20,0.1)] my-auto p-4 sm:p-6">
+                            <h3 className="text-xl sm:text-2xl font-heading text-primary mb-2 text-center">UNLOCK ACCESS</h3>
+                            <div className="text-center mb-4 sm:mb-6">
+                                <span className="text-2xl sm:text-3xl font-heading text-white">{course.price} EGP</span>
                             </div>
-                        ) : (
-                            <form onSubmit={submitUnlockRequest} className="space-y-4">
-                                {/* Payment Instructions */}
-                                <div className="bg-arcade/10 border border-arcade/50 rounded p-4 mb-4">
-                                    <h4 className="font-heading text-arcade text-sm mb-2">📱 PAYMENT INSTRUCTIONS</h4>
-                                    <ol className="text-xs text-slate-300 space-y-1 font-mono list-decimal list-inside">
-                                        <li>Send <span className="text-white font-bold">{course.price || 0} EGP</span> via Instapay</li>
-                                        <li>Take a screenshot of the transaction</li>
-                                        <li>Send screenshot to WhatsApp: <span className="text-white font-bold">01022138836</span></li>
-                                        <li>Fill the form below and submit</li>
-                                    </ol>
-                                </div>
+                            <p className="text-slate-400 text-sm sm:text-base mb-5 sm:mb-6 font-mono leading-relaxed">
+                                To unlock this mission pack, please transfer the fee via Instapay and submit your details below. An admin will verify your clearance.
+                            </p>
 
-                                <div className="bg-slate-800 p-4 rounded border border-slate-700 mb-4 flex items-center gap-4">
-                                    <Smartphone className="w-8 h-8 text-arcade" />
-                                    <div>
-                                        <div className="text-xs text-slate-400">INSTAPAY / WHATSAPP</div>
-                                        <div className="font-mono text-xl text-white">01022138836</div>
+                            {paymentStatus === "success" ? (
+                                <div className="bg-green-500/10 border border-green-500 text-green-500 p-6 text-center">
+                                    <CheckCircle className="w-12 h-12 mx-auto mb-2" />
+                                    <h4 className="font-heading text-xl">REQUEST SENT</h4>
+                                    <p className="text-sm">Please wait for admin approval. You will be contacted shortly.</p>
+                                </div>
+                            ) : (
+                                <form onSubmit={submitUnlockRequest} className="space-y-4">
+                                    {/* Payment Instructions */}
+                                    <div className="bg-arcade/10 border border-arcade/50 rounded p-3 sm:p-4 mb-4">
+                                        <h4 className="font-heading text-arcade text-xs sm:text-sm mb-2">📱 PAYMENT INSTRUCTIONS</h4>
+                                        <ol className="text-xs sm:text-sm text-slate-300 space-y-2 font-mono list-decimal list-inside">
+                                            <li>Send <span className="text-white font-bold">{course.price || 0} EGP</span> via Instapay</li>
+                                            <li>Take a screenshot of the transaction</li>
+                                            <li>Send screenshot to WhatsApp: <span className="text-white font-bold">01022138836</span></li>
+                                            <li>Fill the form below and submit</li>
+                                        </ol>
                                     </div>
-                                </div>
 
-                                <GameInput
-                                    label="Your Full Name"
-                                    required
-                                    value={paymentForm.fullName}
-                                    onChange={e => setPaymentForm({ ...paymentForm, fullName: e.target.value })}
-                                />
-                                <GameInput
-                                    label="WhatsApp Number"
-                                    required
-                                    value={paymentForm.phoneNumber}
-                                    placeholder="+20 1xx ..."
-                                    onChange={e => setPaymentForm({ ...paymentForm, phoneNumber: e.target.value })}
-                                />
-                                <GameInput
-                                    label="Transaction Ref / Notes"
-                                    value={paymentForm.notes}
-                                    onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                                />
+                                    <div className="bg-slate-800 p-3 sm:p-4 rounded border border-slate-700 mb-4 flex items-center gap-3 sm:gap-4">
+                                        <Smartphone className="w-7 h-7 sm:w-8 sm:h-8 text-arcade" />
+                                        <div>
+                                            <div className="text-xs text-slate-400">INSTAPAY / WHATSAPP</div>
+                                            <div className="font-mono text-lg sm:text-xl text-white">01022138836</div>
+                                        </div>
+                                    </div>
 
-                                <div className="flex gap-4 mt-6">
-                                    <GameButton type="button" variant="ghost" className="flex-1" onClick={() => setShowUnlockModal(false)}>CANCEL</GameButton>
-                                    <GameButton type="submit" className="flex-1" disabled={paymentStatus === "submitting"}>
-                                        {paymentStatus === "submitting" ? "TRANSMITTING..." : "SUBMIT REQUEST"}
-                                    </GameButton>
-                                </div>
-                                {paymentStatus === "error" && (
-                                    <p className="text-red-500 text-xs text-center mt-2">Transmission failed. Try again.</p>
-                                )}
-                            </form>
-                        )}
-                    </GameCard>
-                </div>
-            )}
+                                    <GameInput
+                                        label="Your Full Name"
+                                        required
+                                        value={paymentForm.fullName}
+                                        onChange={e => setPaymentForm({ ...paymentForm, fullName: e.target.value })}
+                                    />
+                                    <GameInput
+                                        label="WhatsApp Number"
+                                        required
+                                        value={paymentForm.phoneNumber}
+                                        placeholder="+20 1xx ..."
+                                        onChange={e => setPaymentForm({ ...paymentForm, phoneNumber: e.target.value })}
+                                    />
+                                    <GameInput
+                                        label="Transaction Ref / Notes (Optional)"
+                                        value={paymentForm.notes}
+                                        onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                                    />
+
+                                    <div className="flex flex-col-reverse sm:flex-row gap-4 mt-6">
+                                        <GameButton type="button" variant="ghost" className="w-full sm:flex-1" onClick={() => setShowUnlockModal(false)}>CANCEL</GameButton>
+                                        <GameButton type="submit" className="w-full sm:flex-1" disabled={paymentStatus === "submitting"}>
+                                            {paymentStatus === "submitting" ? "TRANSMITTING..." : "SUBMIT REQUEST"}
+                                        </GameButton>
+                                    </div>
+                                    {paymentStatus === "error" && (
+                                        <p className="text-red-500 text-xs text-center mt-2">Transmission failed. Try again.</p>
+                                    )}
+                                </form>
+                            )}
+                        </GameCard>
+                    </div>
+                )
+            }
 
             {/* Certificate Modal */}
-            {showCertificateModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <GameCard className="w-full max-w-lg bg-slate-900 border-yellow-500 shadow-[0_0_50px_rgba(234,179,8,0.1)]">
-                        <Award className="w-12 h-12 text-yellow-500 mb-4 mx-auto" />
-                        <h3 className="text-2xl font-heading text-yellow-500 mb-2 text-center">CLAIM YOUR CERTIFICATE</h3>
-                        <p className="text-slate-400 text-sm mb-6 font-mono text-center">
-                            Congratulations on completing the mission! Enter your details to receive your official certification.
-                        </p>
+            {
+                showCertificateModal && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10050] overflow-y-auto flex items-start sm:items-center justify-center p-3 sm:p-4 py-6 sm:py-4">
+                        <GameCard className="w-full max-w-sm sm:max-w-lg bg-slate-900 border-yellow-500 shadow-[0_0_50px_rgba(234,179,8,0.1)] my-auto p-4 sm:p-6">
+                            <Award className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-500 mb-4 mx-auto" />
+                            <h3 className="text-xl sm:text-2xl font-heading text-yellow-500 mb-2 text-center">CLAIM YOUR CERTIFICATE</h3>
+                            <p className="text-slate-400 text-xs sm:text-sm mb-6 font-mono text-center">
+                                Congratulations on completing the mission! Enter your details to receive your official certification.
+                            </p>
 
-                        {certStatus === "success" ? (
-                            <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-500 p-6 text-center">
-                                <CheckCircle className="w-12 h-12 mx-auto mb-2" />
-                                <h4 className="font-heading text-xl">APPLICATION RECEIVED</h4>
-                                <p className="text-sm">We will contact you shortly.</p>
-                            </div>
-                        ) : (
-                            <form onSubmit={submitCertificateRequest} className="space-y-4">
-                                <GameInput
-                                    label="Full Name (for Certificate)"
-                                    required
-                                    value={certForm.fullName}
-                                    onChange={e => setCertForm({ ...certForm, fullName: e.target.value })}
-                                />
-                                <GameInput
-                                    label="WhatsApp Number"
-                                    required
-                                    value={certForm.phoneNumber}
-                                    placeholder="+20 1xx ..."
-                                    onChange={e => setCertForm({ ...certForm, phoneNumber: e.target.value })}
-                                />
-
-                                <div className="flex gap-4 mt-6">
-                                    <GameButton type="button" variant="ghost" className="flex-1" onClick={() => setShowCertificateModal(false)}>CANCEL</GameButton>
-                                    <GameButton type="submit" className="flex-1 bg-yellow-600 hover:bg-yellow-500" disabled={certStatus === "submitting"}>
-                                        {certStatus === "submitting" ? "TRANSMITTING..." : "SUBMIT APPLICATION"}
-                                    </GameButton>
+                            {certStatus === "success" ? (
+                                <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-500 p-6 text-center">
+                                    <CheckCircle className="w-12 h-12 mx-auto mb-2" />
+                                    <h4 className="font-heading text-xl">APPLICATION RECEIVED</h4>
+                                    <p className="text-sm">We will contact you shortly.</p>
                                 </div>
-                                {certStatus === "error" && (
-                                    <p className="text-red-500 text-xs text-center mt-2">Transmission failed. Try again.</p>
-                                )}
-                            </form>
-                        )}
-                    </GameCard>
-                </div>
-            )}
-        </div>
+                            ) : (
+                                <form onSubmit={submitCertificateRequest} className="space-y-4">
+                                    <GameInput
+                                        label="Full Name (for Certificate)"
+                                        required
+                                        value={certForm.fullName}
+                                        onChange={e => setCertForm({ ...certForm, fullName: e.target.value })}
+                                    />
+                                    <GameInput
+                                        label="WhatsApp Number"
+                                        required
+                                        value={certForm.phoneNumber}
+                                        placeholder="+20 1xx ..."
+                                        onChange={e => setCertForm({ ...certForm, phoneNumber: e.target.value })}
+                                    />
+
+                                    <div className="flex gap-4 mt-6">
+                                        <GameButton type="button" variant="ghost" className="flex-1" onClick={() => setShowCertificateModal(false)}>CANCEL</GameButton>
+                                        <GameButton type="submit" className="flex-1 bg-yellow-600 hover:bg-yellow-500" disabled={certStatus === "submitting"}>
+                                            {certStatus === "submitting" ? "TRANSMITTING..." : "SUBMIT APPLICATION"}
+                                        </GameButton>
+                                    </div>
+                                    {certStatus === "error" && (
+                                        <p className="text-red-500 text-xs text-center mt-2">Transmission failed. Try again.</p>
+                                    )}
+                                </form>
+                            )}
+                        </GameCard>
+                    </div>
+                )
+            }
+        </div >
     );
 }

@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/ui/Navbar";
+import { Footer } from "@/components/ui/Footer";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import CoursesClient from "./CoursesClient";
@@ -34,6 +35,8 @@ export default async function CoursesPage() {
                 title="CONTACT ME"
                 subtitle="Have questions about courses or enrollment? Send a message."
             />
+
+            <Footer />
         </main>
     );
 }

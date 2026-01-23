@@ -8,7 +8,7 @@ import { GameInput } from "@/components/ui/GameInput";
 
 export default function RegisterPage() {
     const router = useRouter();
-    const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+    const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "" });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -65,6 +65,14 @@ export default function RegisterPage() {
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
+                    <GameInput
+                        label="Phone Number"
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        placeholder="e.g. 01012345678"
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
                     <GameInput
                         label="Secret Key (Password)"

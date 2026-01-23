@@ -1,17 +1,11 @@
-
 import { NextResponse } from "next/server";
-import path from "path";
-import fs from "fs/promises";
-import { writeFile } from "fs/promises";
-
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-};
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: Request) {
     try {
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: "Supabase admin client is not configured. Check SUPABASE_SERVICE_ROLE_KEY." }, { status: 500 });
+        }
         const formData = await req.formData();
         const file = formData.get("file") as File;
 
@@ -19,27 +13,34 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No file received." }, { status: 400 });
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const filename = Date.now() + "_" + file.name.replaceAll(" ", "_");
-        const uploadDir = path.join(process.cwd(), "public/uploads");
+        const buffer = await file.arrayBuffer();
+        const filename = `${Date.now()}_${file.name.replaceAll(" ", "_")}`;
 
-        // Ensure directory exists
-        try {
-            await fs.access(uploadDir);
-        } catch {
-            await fs.mkdir(uploadDir, { recursive: true });
+        const { data, error } = await supabaseAdmin.storage
+            .from("coursespictures")
+            .upload(filename, Buffer.from(buffer), {
+                contentType: file.type,
+                cacheControl: "3600",
+                upsert: false,
+            });
+
+        if (error) {
+            console.error("Supabase Upload Error:", error);
+            return NextResponse.json({ error: "Upload to storage failed." }, { status: 500 });
         }
 
-        const filePath = path.join(uploadDir, filename);
-        await writeFile(filePath, buffer);
+        // Get Public URL
+        const { data: { publicUrl } } = supabaseAdmin.storage
+            .from("coursespictures")
+            .getPublicUrl(filename);
 
         return NextResponse.json({
             success: true,
-            url: `/uploads/${filename}`
+            url: publicUrl
         });
 
     } catch (error) {
-        console.error("Upload Error:", error);
-        return NextResponse.json({ error: "Upload failed." }, { status: 500 });
+        console.error("General Upload Error:", error);
+        return NextResponse.json({ error: "Upload process failed." }, { status: 500 });
     }
 }

@@ -140,7 +140,7 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
             {questions && questions.map((q, qIdx) => {
                 const result = results[qIdx];
                 const isAnsweredThisSession = !!result;
-                const previouslyAnswered = answeredQuestions.includes(`${sectionId}-${qIdx}`);
+                const previouslyAnswered = allAnswered.includes(`${sId}-${qIdx}`);
                 const isCorrect = result?.isCorrect;
                 const isLocked = isAnsweredThisSession && isCorrect; // Lock after correct answer
 
@@ -206,7 +206,7 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
                                         The correct answer is highlighted in green. Try the next question!
                                     </p>
                                 )}
-                                {isCorrect && previouslyAnswered && (
+                                {isCorrect && previouslyAnswered && !isAnsweredThisSession && (
                                     <p className="text-xs opacity-70 mt-1">
                                         (Already completed previously - No XP awarded)
                                     </p>

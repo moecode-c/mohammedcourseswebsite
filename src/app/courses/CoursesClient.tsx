@@ -66,6 +66,12 @@ export default function CoursesClient({ courses }: CoursesClientProps) {
                                             {course.thumbnail && (
                                                 <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" />
                                             )}
+                                            {/* Discount Badge */}
+                                            {course.discountActive && !course.isFree && (
+                                                <div className="absolute top-2 right-2 bg-arcade text-black font-press-start text-[8px] px-2 py-1 rounded shadow-lg animate-bounce flex items-center gap-1 z-20">
+                                                    <Tag className="w-3 h-3" /> SALE
+                                                </div>
+                                            )}
                                         </div>
                                     </Link>
 
@@ -89,21 +95,21 @@ export default function CoursesClient({ courses }: CoursesClientProps) {
                                                 <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded font-mono whitespace-nowrap self-start md:self-auto uppercase tracking-tighter">FREE ACCESS</span>
                                             ) : (
                                                 <div className="flex flex-col items-end">
-                                                    {course.discountActive && course.discountPrice !== undefined ? (
+                                                    {course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice < course.price ? (
                                                         <>
                                                             <span className="text-[10px] font-mono text-slate-500 line-through decoration-arcade/50">{course.price} EGP</span>
-                                                            <span className="text-lg md:text-xl font-bold font-press-start text-arcade whitespace-nowrap animate-pulse">
+                                                            <span className="text-sm md:text-base font-bold font-press-start text-arcade whitespace-nowrap animate-pulse">
                                                                 {course.discountPrice} EGP
                                                             </span>
                                                         </>
                                                     ) : (
-                                                        <span className="text-lg md:text-xl font-bold font-press-start text-arcade whitespace-nowrap self-start md:self-auto">{course.price} EGP</span>
+                                                        <span className="text-sm md:text-base font-bold font-press-start text-arcade whitespace-nowrap self-start md:self-auto">{course.price} EGP</span>
                                                     )}
                                                 </div>
                                             )}
                                         </div>
 
-                                        <p className="text-slate-400 text-sm font-mono mb-4 line-clamp-3 flex-grow">
+                                        <p className="text-slate-400 text-base font-mono mb-4 line-clamp-3 flex-grow">
                                             {course.description}
                                         </p>
 

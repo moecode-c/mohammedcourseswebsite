@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { Navbar } from "@/components/ui/Navbar";
+import { Footer } from "@/components/ui/Footer";
 import { CourseView } from "@/components/game/CourseView";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
@@ -138,14 +139,17 @@ export default async function CoursePage(
     }
 
     return (
-        <main className="min-h-screen bg-slate-950 text-white">
+        <main className="min-h-screen bg-slate-950 text-white flex flex-col">
             <Navbar />
-            <CourseView
-                course={data.course}
-                user={data.user}
-                hasPendingCertificate={data.hasPendingCertificate}
-                hasPendingAccessRequest={data.hasPendingAccessRequest}
-            />
+            <div className="flex-1">
+                <CourseView
+                    course={data.course}
+                    user={data.user}
+                    hasPendingCertificate={data.hasPendingCertificate}
+                    hasPendingAccessRequest={data.hasPendingAccessRequest}
+                />
+            </div>
+            <Footer />
         </main>
     );
 }

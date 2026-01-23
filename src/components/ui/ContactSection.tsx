@@ -16,13 +16,33 @@ export function ContactSection({
     subtitle = "Got a question or want to collaborate? Drop a message below.",
 }: ContactSectionProps) {
     const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [message, setMessage] = useState("");
     const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const validate = () => {
+        if (name.trim().length < 2) {
+            setErrorMessage("Name must be at least 2 characters.");
+            return false;
+        }
+        const phoneRegex = /^[0-9+() -]{8,20}$/;
+        if (!phoneRegex.test(phone.trim())) {
+            setErrorMessage("Please enter a valid phone number.");
+            return false;
+        }
+        if (message.trim().length < 5) {
+            setErrorMessage("Message must be at least 5 characters.");
+            return false;
+        }
+        return true;
+    };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!name.trim() || !email.trim() || !message.trim()) {
+        setErrorMessage("");
+
+        if (!validate()) {
             setStatus("error");
             return;
         }
@@ -32,17 +52,18 @@ export function ContactSection({
             const res = await fetch("/api/messages", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, message, source }),
+                body: JSON.stringify({ name, phone, message, source }),
             });
 
             if (!res.ok) throw new Error("Failed to send");
 
             setName("");
-            setEmail("");
+            setPhone("");
             setMessage("");
             setStatus("sent");
         } catch (error) {
             console.error(error);
+            setErrorMessage("Failed to send message. Please try again later.");
             setStatus("error");
         }
     };
@@ -72,6 +93,14 @@ export function ContactSection({
                             </div>
                         </div>
                     </div>
+
+                    <div className="flex justify-center md:justify-start pt-4">
+                        <img
+                            src="/gifs/letter.gif"
+                            alt="Letter"
+                            className="w-48 h-48 md:w-64 md:h-64 object-contain animate-bounce-slow"
+                        />
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="bg-slate-950 border border-slate-800 rounded p-6 space-y-4">
@@ -86,13 +115,13 @@ export function ContactSection({
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-mono text-slate-500 uppercase mb-2">Email</label>
+                        <label className="block text-xs font-mono text-slate-500 uppercase mb-2">Phone Number</label>
                         <input
-                            type="email"
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
+                            type="tel"
+                            value={phone}
+                            onChange={(event) => setPhone(event.target.value)}
                             className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:border-primary"
-                            placeholder="you@example.com"
+                            placeholder="01022138836"
                             required
                         />
                     </div>
@@ -116,7 +145,7 @@ export function ContactSection({
                             <span className="text-green-400 text-sm font-mono">Message sent successfully.</span>
                         )}
                         {status === "error" && (
-                            <span className="text-red-400 text-sm font-mono">Please fill all fields and try again.</span>
+                            <span className="text-red-400 text-sm font-mono">{errorMessage || "Please fill all fields correctly."}</span>
                         )}
                     </div>
                 </form>

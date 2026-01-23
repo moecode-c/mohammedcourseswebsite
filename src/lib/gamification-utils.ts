@@ -7,6 +7,7 @@ export function calculateLevel(xp: number): number {
 }
 
 export function xpForLevel(level: number): number {
+    if (level <= 1) return 0;
     return Math.floor(LEVEL_FORMULA_CONST * Math.pow(level, 1.5));
 }
 

@@ -4,9 +4,36 @@ import { jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret_please_change";
 
+// Basic in-memory rate limiting (for single-server/development)
+const rateLimit = new Map<string, { count: number; reset: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS = 100; // 100 requests per minute
+
 export async function middleware(request: NextRequest) {
-    const token = request.cookies.get("token")?.value;
     const { pathname } = request.nextUrl;
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+
+    // Skip rate limiting for static assets
+    const isStatic = pathname.startsWith("/_next") ||
+        pathname.startsWith("/api/upload") || // Allow uploads (large files might hit limits)
+        pathname.includes(".") ||
+        pathname.startsWith("/gifs");
+
+    if (!isStatic) {
+        const now = Date.now();
+        const userLimit = rateLimit.get(ip);
+
+        if (userLimit && now < userLimit.reset) {
+            if (userLimit.count >= MAX_REQUESTS) {
+                return new NextResponse("Too Many Requests", { status: 429 });
+            }
+            userLimit.count++;
+        } else {
+            rateLimit.set(ip, { count: 1, reset: now + RATE_LIMIT_WINDOW });
+        }
+    }
+
+    const token = request.cookies.get("token")?.value;
 
     // Protect Admin Routes
     if (pathname.startsWith("/admin")) {
@@ -33,7 +60,12 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+
+    // Additional security headers that can be set via middleware
+    response.headers.set('X-XSS-Protection', '1; mode=block');
+
+    return response;
 }
 
 export const config = {

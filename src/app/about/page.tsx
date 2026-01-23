@@ -31,6 +31,15 @@ export default function AboutPage() {
                 </div>
             </section>
 
+            {/* Robot Image Section */}
+            <div className="w-full flex justify-center -mt-10 mb-12 z-10 relative">
+                <img
+                    src="/svgs/robot.webp"
+                    alt="Robot Mascot"
+                    className="w-32 md:w-40 h-auto drop-shadow-[0_0_15px_rgba(57,255,20,0.2)] animate-bounce-slow"
+                />
+            </div>
+
             {/* The Creator Section */}
             <section className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 <div className="relative group animate-fade-in-up h-[400px]">
@@ -61,16 +70,16 @@ export default function AboutPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-slate-900 border border-slate-800 rounded hover:border-primary/50 transition-colors">
-                            <h4 className="text-2xl font-bold text-primary mb-1">5+</h4>
-                            <p className="text-xs text-slate-500 uppercase font-mono">Years Exp.</p>
+                            <h4 className="text-2xl font-bold text-primary mb-1">3+</h4>
+                            <p className="text-xs text-slate-500 uppercase font-mono">years experience</p>
                         </div>
                         <div className="p-4 bg-slate-900 border border-slate-800 rounded hover:border-primary/50 transition-colors">
-                            <h4 className="text-2xl font-bold text-secondary mb-1">100+</h4>
-                            <p className="text-xs text-slate-500 uppercase font-mono">Projects Built</p>
+                            <h4 className="text-2xl font-bold text-secondary mb-1">15+</h4>
+                            <p className="text-xs text-slate-500 uppercase font-mono">projects</p>
                         </div>
                         <div className="p-4 bg-slate-900 border border-slate-800 rounded hover:border-primary/50 transition-colors">
-                            <h4 className="text-2xl font-bold text-arcade mb-1">1K+</h4>
-                            <p className="text-xs text-slate-500 uppercase font-mono">Students</p>
+                            <h4 className="text-2xl font-bold text-arcade mb-1">500+</h4>
+                            <p className="text-xs text-slate-500 uppercase font-mono">students</p>
                         </div>
                         <div className="p-4 bg-slate-900 border border-slate-800 rounded hover:border-primary/50 transition-colors">
                             <h4 className="text-2xl font-bold text-green-500 mb-1">∞</h4>

@@ -66,7 +66,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
                         <Trophy className="w-5 h-5 text-yellow-500" /> LEADERBOARD
                     </Link>
                     <Link href="/about" className="text-base text-slate-300 hover:text-white transition-colors flex items-center gap-2">
-                        <BookOpen className="w-5 h-5" /> TUTORIAL
+                        <BookOpen className="w-5 h-5" /> ABOUT
                     </Link>
                 </div>
 
@@ -135,7 +135,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
                         <Trophy className="w-6 h-6 text-slate-500" /> LEADERBOARD
                     </Link>
                     <Link href="/about" onClick={toggleMenu} className="text-2xl font-heading text-white hover:text-primary border-b border-slate-800 pb-4 flex items-center gap-4">
-                        <BookOpen className="w-6 h-6 text-slate-500" /> TUTORIAL
+                        <BookOpen className="w-6 h-6 text-slate-500" /> ABOUT
                     </Link>
                 </div>
 
