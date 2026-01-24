@@ -8,16 +8,9 @@ import { Gamepad2, Brain, Trophy, Ghost, Star, Tag } from "lucide-react";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 import Squares from "@/components/ui/Squares";
-import dynamic from "next/dynamic";
+import ModelViewerWrapper from "@/components/ui/ModelViewerWrapper";
 import { ContactSection } from "@/components/ui/ContactSection";
 
-const ModelViewerWrapper = dynamic(
-  () => import("@/components/ui/ModelViewerWrapper"),
-  {
-    ssr: false,
-    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse rounded-xl" />
-  }
-);
 
 export default async function Home() {
   await dbConnect();
