@@ -18,7 +18,7 @@ import AccessRequest from "@/models/AccessRequest";
 async function getCourseData(id: string) {
     noStore();
     const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const token = cookieStore.get("session_token")?.value;
 
     if (!mongoose.Types.ObjectId.isValid(id)) return null;
 

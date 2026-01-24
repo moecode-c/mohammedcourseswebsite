@@ -29,7 +29,7 @@ export async function GET(
 
         // Check User Access
         const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
+        const token = cookieStore.get("session_token")?.value;
         let hasFullAccess = false;
         let isAdmin = false;
 
@@ -105,7 +105,7 @@ export async function PUT(
 
         // Check Admin Access
         const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
+        const token = cookieStore.get("session_token")?.value;
 
         if (!token) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -153,7 +153,7 @@ export async function DELETE(
         }
 
         const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
+        const token = cookieStore.get("session_token")?.value;
 
         if (!token) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

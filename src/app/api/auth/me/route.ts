@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 export async function GET() {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
+        const token = cookieStore.get("session_token")?.value;
 
         if (!token) {
             return NextResponse.json({ user: null }, { status: 200 });

@@ -13,7 +13,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
         // 1. Verify Admin
         const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
+        const token = cookieStore.get("session_token")?.value;
         if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const payload = verifyToken(token);
@@ -42,7 +42,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
         // 1. Verify Admin
         const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
+        const token = cookieStore.get("session_token")?.value;
         if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const payload = verifyToken(token);

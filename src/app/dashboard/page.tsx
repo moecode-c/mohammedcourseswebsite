@@ -17,7 +17,7 @@ import { unstable_noStore as noStore } from "next/cache";
 async function getData() {
     noStore();
     const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const token = cookieStore.get("session_token")?.value;
     if (!token) return { courses: [], user: null, certificateRequests: [] };
     const payload = verifyToken(token);
     if (!payload) return { courses: [], user: null, certificateRequests: [] };

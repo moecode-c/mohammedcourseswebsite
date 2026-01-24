@@ -6,7 +6,7 @@ import { NavbarClient } from "./NavbarClient";
 
 async function getUser() {
     const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const token = cookieStore.get("session_token")?.value;
     if (!token) return null;
     const payload = verifyToken(token);
     if (!payload) return null;
