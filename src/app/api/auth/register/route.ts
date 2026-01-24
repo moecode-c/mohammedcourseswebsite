@@ -3,9 +3,22 @@ import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { hashPassword, signToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
     try {
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+
+        // Check rate limit for registration to prevent spam
+        const limitStatus = rateLimit.check(ip);
+        if (limitStatus.limited) {
+            const remainingMinutes = Math.ceil((limitStatus.resetTime - Date.now()) / 60000);
+            return NextResponse.json(
+                { error: `Too many registration attempts. Please try again in ${remainingMinutes} minutes.` },
+                { status: 429 }
+            );
+        }
+
         await dbConnect();
         const { name, email, password, phone, role } = await req.json();
 
@@ -38,6 +51,9 @@ export async function POST(req: Request) {
             role: userRole,
         });
 
+        // Clear rate limit on success (optional, but good for genuine users)
+        rateLimit.clear(ip);
+
         const token = signToken({ userId: user._id as unknown as string, role: user.role });
 
         (await cookies()).set("session_token", token, {
@@ -58,6 +74,10 @@ export async function POST(req: Request) {
             },
         });
     } catch (error) {
+        // Increment rate limit on error to prevent bruteforce/spam
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+        rateLimit.increment(ip);
+
         console.error("Register Error:", error);
         return NextResponse.json(
             { error: "Internal Server Error" },

@@ -23,7 +23,7 @@ export function NavbarClient({ user }: NavbarClientProps) {
     const handleSignOut = async () => {
         try {
             await fetch("/api/auth/logout", { method: "POST" });
-            window.location.href = "/login";
+            window.location.href = "/";
         } catch (error) {
             console.error("Logout failed", error);
         }

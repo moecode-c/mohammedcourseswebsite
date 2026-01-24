@@ -1,11 +1,25 @@
+```
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { comparePassword, signToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { rateLimit } from "@/lib/rate-limit"; // Changed import path
 
 export async function POST(req: Request) {
     try {
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+
+        // Check rate limit
+        const limitStatus = rateLimit.check(ip);
+        if (limitStatus.limited) {
+            const remainingMinutes = Math.ceil((limitStatus.resetTime - Date.now()) / 60000);
+            return NextResponse.json(
+                { error: `Too many login attempts.Please try again in ${ remainingMinutes } minutes.` },
+                { status: 429 }
+            );
+        }
+
         await dbConnect();
         const { email, password } = await req.json();
 
@@ -20,6 +34,9 @@ export async function POST(req: Request) {
         const user = await User.findOne({ email }).select("+password");
 
         if (!user || !user.password) {
+            // Increment rate limit on failure
+            rateLimit.increment(ip);
+
             return NextResponse.json(
                 { error: "Invalid credentials" },
                 { status: 401 }
@@ -29,11 +46,17 @@ export async function POST(req: Request) {
         const isMatch = await comparePassword(password, user.password);
 
         if (!isMatch) {
+            // Increment rate limit on failure
+            rateLimit.increment(ip);
+
             return NextResponse.json(
                 { error: "Invalid credentials" },
                 { status: 401 }
             );
         }
+
+        // Reset rate limit on success
+        rateLimit.clear(ip);
 
         const token = signToken({ userId: user._id as unknown as string, role: user.role });
 
