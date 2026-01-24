@@ -55,10 +55,13 @@ export function AdminCourseDashboard({ courses, users, requests, onGrantAccess, 
 
     const selectedCourse = courses.find(c => c._id === selectedCourseId);
 
-    const usersWithAccess = useMemo(
-        () => users.filter(u => hasCourse(u.unlockedCourses, selectedCourseId)),
-        [users, selectedCourseId]
-    );
+    const usersWithAccess = useMemo(() => {
+        if (!selectedCourseId) return [];
+        if (selectedCourse?.isFree) return users;
+        return users.filter(u =>
+            hasCourse(u.unlockedCourses, selectedCourseId) || hasCourse(u.completedCourses, selectedCourseId)
+        );
+    }, [users, selectedCourseId, selectedCourse?.isFree]);
 
     const usersCompleted = useMemo(
         () => users.filter(u => hasCourse(u.completedCourses, selectedCourseId)),
@@ -84,7 +87,11 @@ export function AdminCourseDashboard({ courses, users, requests, onGrantAccess, 
         ? Math.round((usersCompleted.length / usersWithAccess.length) * 100)
         : 0;
 
-    const availableUsers = users.filter(u => !hasCourse(u.unlockedCourses, selectedCourseId));
+    const availableUsers = selectedCourse?.isFree
+        ? []
+        : users.filter(u =>
+            !hasCourse(u.unlockedCourses, selectedCourseId) && !hasCourse(u.completedCourses, selectedCourseId)
+        );
 
     const handleGrant = async () => {
         if (!selectedUserId || !selectedCourseId) return;

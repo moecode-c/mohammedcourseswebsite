@@ -55,19 +55,19 @@ export default async function LeaderboardPage() {
                         }
 
                         return (
-                            <div key={user._id} className={`p-4 rounded border flex items-center gap-4 transition-transform hover:scale-[1.01] ${rankClass}`}>
-                                <div className="w-12 text-center font-heading text-xl text-slate-500 flex justify-center">
+                            <div key={user._id} className={`p-4 rounded border flex flex-col sm:flex-row sm:items-center gap-4 transition-transform hover:scale-[1.01] ${rankClass}`}>
+                                <div className="w-12 text-center font-heading text-xl text-slate-500 flex justify-center shrink-0">
                                     {rankIcon || `#${index + 1}`}
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 w-full">
                                     <div className={`font-mono text-lg ${textClass}`}>{user.name}</div>
-                                    <div className="text-xs text-slate-500 font-mono flex gap-4">
+                                    <div className="text-xs text-slate-500 font-mono flex flex-wrap gap-4">
                                         <span>Streak: {user.streak?.count || 0} 🔥</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-6">
-                                    <div className="text-right">
-                                        <div className="text-xl font-heading text-primary">{user.xp.toLocaleString()} XP</div>
+                                <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
+                                    <div className="text-left sm:text-right">
+                                        <div className="text-lg sm:text-xl font-heading text-primary">{user.xp.toLocaleString()} XP</div>
                                         <div className="text-xs text-slate-500 font-mono">Total Score</div>
                                     </div>
                                     <LevelBadge level={user.level} size="md" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { GameButton } from "@/components/ui/GameButton";
 import { GameCard } from "@/components/ui/GameCard";
 import { GameInput } from "@/components/ui/GameInput";
@@ -24,6 +24,9 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [xpGained, setXpGained] = useState<number | null>(null);
     const [isPendingAccess, setIsPendingAccess] = useState(hasPendingAccessRequest);
+    const [showVideoModal, setShowVideoModal] = useState(false);
+    const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+    const videoFrameRef = useRef<HTMLIFrameElement | null>(null);
 
     // Payment Form State
     const [paymentForm, setPaymentForm] = useState({ fullName: "", phoneNumber: "", notes: "" });
@@ -33,6 +36,34 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
 
     // Check if all sections are completed for certificate eligibility
     const allSectionsCompleted = course.sections.every((s: any) => completedSections.includes(s._id));
+
+    const getVideoId = (url?: string) => {
+        if (!url) return "";
+        let videoId = "";
+        try {
+            if (url.includes("v=")) {
+                videoId = url.split("v=")[1].split("&")[0];
+            } else if (url.includes("youtu.be/")) {
+                videoId = url.split("youtu.be/")[1].split("?")[0];
+            } else if (url.includes("embed/")) {
+                videoId = url.split("embed/")[1].split("?")[0];
+            }
+            if (videoId.indexOf("?") !== -1) videoId = videoId.split("?")[0];
+            if (videoId.indexOf("/") !== -1) videoId = videoId.split("/")[0];
+        } catch (e) {
+            console.error("Video parse error", e);
+        }
+        return videoId;
+    };
+
+    const enterFullscreen = () => {
+        const el = videoFrameRef.current as any;
+        if (!el) return;
+        if (el.requestFullscreen) return el.requestFullscreen();
+        if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+        if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
+        if (el.msRequestFullscreen) return el.msRequestFullscreen();
+    };
 
     const handleComplete = async (sectionId: string) => {
         if (!user) {
@@ -292,42 +323,47 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                         <>
                                                             {currentSection.videoUrl && (
                                                                 <>
-                                                                    <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden relative group select-none">
+                                                                    <div className="aspect-video bg-black mb-6 rounded border-2 border-slate-800 shadow-[0_0_30px_rgba(0,0,0,0.5)] overflow-hidden relative">
                                                                         {(() => {
-                                                                            let videoId = "";
-                                                                            try {
-                                                                                const url = currentSection.videoUrl;
-                                                                                if (url.includes("v=")) {
-                                                                                    videoId = url.split("v=")[1].split("&")[0];
-                                                                                } else if (url.includes("youtu.be/")) {
-                                                                                    videoId = url.split("youtu.be/")[1].split("?")[0];
-                                                                                } else if (url.includes("embed/")) {
-                                                                                    videoId = url.split("embed/")[1].split("?")[0];
-                                                                                }
-                                                                                if (videoId.indexOf("?") !== -1) videoId = videoId.split("?")[0];
-                                                                                if (videoId.indexOf("/") !== -1) videoId = videoId.split("/")[0];
-                                                                            } catch (e) { console.error("Video parse error", e); }
+                                                                            const videoId = getVideoId(currentSection.videoUrl);
 
                                                                             if (videoId) {
                                                                                 return (
-                                                                                    <>
-                                                                                        <div className="absolute top-0 right-0 w-32 h-16 z-20" title="Overlay"></div>
-                                                                                        <iframe
-                                                                                            src={`https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&disablekb=1&fs=1&iv_load_policy=3&cc_load_policy=0`}
-                                                                                            title={currentSection.title}
-                                                                                            className="w-full h-full"
-                                                                                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                                                                            allowFullScreen
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            setActiveVideoId(videoId);
+                                                                                            setShowVideoModal(true);
+                                                                                        }}
+                                                                                        className="w-full h-full relative group"
+                                                                                        aria-label="Play video"
+                                                                                    >
+                                                                                        <img
+                                                                                            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                                                                                            alt={currentSection.title}
+                                                                                            className="w-full h-full object-cover"
                                                                                         />
-                                                                                    </>
-                                                                                );
-                                                                            } else {
-                                                                                return (
-                                                                                    <div className="absolute inset-0 flex items-center justify-center text-slate-500">
-                                                                                        Invalid Video Link
-                                                                                    </div>
+                                                                                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition" />
+                                                                                        <div className="absolute inset-0 flex items-center justify-center">
+                                                                                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                                                                                                <span className="sr-only">Play</span>
+                                                                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                                                                                                    <path d="M8 5v14l11-7z" />
+                                                                                                </svg>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="absolute bottom-3 left-3 right-3 text-xs font-mono text-white/90 bg-black/60 px-3 py-2 rounded border border-white/10 text-center">
+                                                                                            TAP TO PLAY
+                                                                                        </div>
+                                                                                    </button>
                                                                                 );
                                                                             }
+
+                                                                            return (
+                                                                                <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+                                                                                    Invalid Video Link
+                                                                                </div>
+                                                                            );
                                                                         })()}
                                                                     </div>
                                                                     {/* Video Security Disclaimer */}
@@ -343,8 +379,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                                 </>
                                                             )}
                                                             <div
-                                                                className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-xl md:text-2xl"
-                                                                    className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-base sm:text-lg md:text-2xl break-words"
+                                                                className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-base sm:text-lg md:text-2xl break-words"
                                                             >
                                                                 {currentSection.content}
                                                             </div>
@@ -386,8 +421,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                 default: // text
                                                     return (
                                                         <div
-                                                            className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-xl md:text-2xl"
-                                                                className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-base sm:text-lg md:text-2xl break-words"
+                                                            className="prose prose-invert max-w-none text-slate-300 font-sans leading-relaxed whitespace-pre-wrap text-base sm:text-lg md:text-2xl break-words"
                                                         >
                                                             {currentSection.content}
                                                         </div>
@@ -417,6 +451,40 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                 )
                 }
             </div >
+
+            {showVideoModal && activeVideoId && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10060] flex items-center justify-center p-4">
+                    <div className="w-full max-w-3xl">
+                        <div className="flex justify-between items-center mb-2">
+                            <button
+                                onClick={enterFullscreen}
+                                className="text-slate-300 hover:text-white font-mono text-sm"
+                            >
+                                FULL SCREEN
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowVideoModal(false);
+                                    setActiveVideoId(null);
+                                }}
+                                className="text-slate-300 hover:text-white font-mono text-sm"
+                            >
+                                CLOSE
+                            </button>
+                        </div>
+                        <div className="aspect-video bg-black rounded border-2 border-slate-800 overflow-hidden">
+                            <iframe
+                                ref={videoFrameRef}
+                                src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1`}
+                                title="Course video"
+                                className="w-full h-full pointer-events-auto"
+                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Unlock Modal */}
             {

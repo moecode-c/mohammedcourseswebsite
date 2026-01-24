@@ -139,3 +139,64 @@ export async function PUT(
         );
     }
 }
+
+export async function DELETE(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        await dbConnect();
+        const { id } = await params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+        }
+
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
+
+        if (!token) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const payload = verifyToken(token);
+        if (!payload || payload.role !== "admin") {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const courseObjectId = new mongoose.Types.ObjectId(id);
+
+        const sections = await Section.find({ courseId: courseObjectId }).select("_id").lean();
+        const sectionIds = sections.map(s => s._id);
+
+        const deletedCourse = await Course.findByIdAndDelete(courseObjectId);
+        if (!deletedCourse) {
+            return NextResponse.json({ error: "Not Found" }, { status: 404 });
+        }
+
+        await Section.deleteMany({ courseId: courseObjectId });
+
+        await User.updateMany(
+            {},
+            {
+                $pull: {
+                    unlockedCourses: courseObjectId,
+                    completedCourses: courseObjectId,
+                    ...(sectionIds.length ? { completedSections: { $in: sectionIds } } : {})
+                }
+            }
+        );
+
+        revalidatePath("/courses", "page");
+        revalidatePath("/dashboard", "page");
+        revalidatePath("/admin", "page");
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Course Delete Error:", error);
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
+    }
+}

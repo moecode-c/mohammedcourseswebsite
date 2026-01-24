@@ -324,6 +324,9 @@ export function AdminUsers() {
                             <div>
                                 <h3 className="text-xl font-heading text-white">{selectedUser.name}</h3>
                                 <p className="text-slate-500 font-mono text-sm">{selectedUser.email}</p>
+                                {selectedUser.phone && (
+                                    <p className="text-slate-600 font-mono text-xs mt-1">PHONE: {selectedUser.phone}</p>
+                                )}
                             </div>
                             <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-white">
                                 <X className="w-6 h-6" />

@@ -38,7 +38,6 @@ export async function GET(req: Request) {
             .populate("unlockedCourses", "title price isFree")
             .populate("completedCourses", "title")
             .sort({ createdAt: -1 })
-            .limit(50)
             .lean();
 
         return NextResponse.json({ users });

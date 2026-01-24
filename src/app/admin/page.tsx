@@ -241,6 +241,23 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleDeleteCourse = async (courseId: string, title: string) => {
+        if (!confirm(`Delete "${title}" and all its sections? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`/api/courses/${courseId}`, { method: "DELETE" });
+            if (res.ok) {
+                setCourses(courses.filter(c => c._id !== courseId));
+                await fetchUsersCount();
+            } else {
+                const data = await res.json();
+                alert(data.error || "Failed to delete course");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Failed to delete course");
+        }
+    };
+
     const revokeCourseAccess = async (userId: string, courseId: string) => {
         try {
             const res = await fetch(`/api/admin/users/${userId}/grant-access`, {
@@ -477,9 +494,19 @@ export default function AdminDashboard() {
                                                 {course.isFeatured ? "★ FEATURED" : "☆ NOT FEATURED"}
                                             </button>
                                         </div>
-                                        <GameButton size="sm" onClick={() => router.push(`/admin/courses/${course._id}`)}>
-                                            EDIT COURSE
-                                        </GameButton>
+                                        <div className="flex items-center gap-2">
+                                            <GameButton size="sm" onClick={() => router.push(`/admin/courses/${course._id}`)}>
+                                                EDIT COURSE
+                                            </GameButton>
+                                            <GameButton
+                                                size="sm"
+                                                variant="danger"
+                                                onClick={() => handleDeleteCourse(course._id, course.title)}
+                                                title="Delete course"
+                                            >
+                                                <Trash className="w-4 h-4" />
+                                            </GameButton>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
