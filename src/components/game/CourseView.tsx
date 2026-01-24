@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { GameButton } from "@/components/ui/GameButton";
 import { GameCard } from "@/components/ui/GameCard";
 import { GameInput } from "@/components/ui/GameInput";
@@ -33,6 +33,26 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
     const [paymentStatus, setPaymentStatus] = useState("idle"); // idle, submitting, success, error
 
     const isCourseLocked = course.isLocked;
+    const storageKey = `course:${course._id}:currentSection`;
+
+    // Restore last viewed section on refresh
+    useEffect(() => {
+        if (!course?.sections?.length) return;
+        const storedId = typeof window !== "undefined" ? window.localStorage.getItem(storageKey) : null;
+        if (storedId) {
+            const match = course.sections.find((s: any) => String(s._id) === String(storedId));
+            if (match) {
+                setCurrentSection(match);
+            }
+        }
+    }, [course?._id, course?.sections, storageKey]);
+
+    // Save current section on change
+    useEffect(() => {
+        if (!currentSection?._id) return;
+        if (typeof window === "undefined") return;
+        window.localStorage.setItem(storageKey, String(currentSection._id));
+    }, [currentSection?._id, storageKey]);
 
     // Check if all sections are completed for certificate eligibility
     const allSectionsCompleted = course.sections.every((s: any) => completedSections.includes(s._id));
