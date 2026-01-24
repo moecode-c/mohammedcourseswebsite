@@ -9,6 +9,7 @@ interface UserData {
     _id: string;
     name: string;
     email: string;
+    phone?: string;
     role: string;
     xp: number;
     level: number;
