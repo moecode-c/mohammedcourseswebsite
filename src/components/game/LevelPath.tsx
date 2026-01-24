@@ -57,9 +57,9 @@ export function LevelPath({ xp, className = "" }: LevelPathProps) {
 
                 {/* Connecting Line Progress */}
                 <div
-                    className="absolute top-1/2 left-0 h-2 bg-primary/30 -translate-y-1/2 rounded-full transition-all duration-1000"
+                    className="absolute top-1/2 left-0 h-2 bg-primary -translate-y-1/2 rounded-full transition-all duration-1000 shadow-[0_0_10px_var(--color-primary)]"
                     style={{
-                        width: `${((Math.min(currentLevel, rangeEnd) - rangeStart) / 4) * 100}%`
+                        width: `${Math.min(100, Math.max(0, ((currentLevel - rangeStart + (progress.percentage / 100)) / 4) * 100))}%`
                     }}
                 />
 
@@ -71,7 +71,7 @@ export function LevelPath({ xp, className = "" }: LevelPathProps) {
                         const isLocked = lvl.status === "locked";
 
                         return (
-                            <div key={lvl.level} className="flex flex-col items-center group">
+                            <div key={lvl.level} className="relative flex flex-col items-center group">
                                 {/* Node Visual */}
                                 <div
                                     className={`
