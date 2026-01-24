@@ -37,6 +37,7 @@ export async function middleware(request: NextRequest) {
 
     // Protect Admin Routes
     if (pathname.startsWith("/admin")) {
+        // ... existing admin logic ...
         // Only block API calls strictly. For page loads, we allow client-side handling to avoid loops if cookies fail.
         if (pathname.startsWith("/api/")) {
             if (!token) {
@@ -62,6 +63,13 @@ export async function middleware(request: NextRequest) {
         }
     }
 
+    // Redirect logged-in users away from auth pages
+    if (pathname === "/login" || pathname === "/register") {
+        if (token) {
+            return NextResponse.redirect(new URL("/", request.url));
+        }
+    }
+
     // Protect Dashboard Routes
     if (pathname.startsWith("/dashboard")) {
         if (!token) {
@@ -78,5 +86,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/dashboard/:path*"],
+    matcher: ["/admin/:path*", "/dashboard/:path*", "/login", "/register"],
 };
