@@ -127,6 +127,13 @@ export default function AdminDashboard() {
         }
     };
 
+    const getApprovedPaidAmount = (req: Request) => {
+        if (req.status !== "approved") return 0;
+        if (!req.courseId || !req.courseId.price || req.courseId.price <= 0) return 0;
+        const amount = req.paymentDetails?.amount || 0;
+        return amount > 0 ? amount : 0;
+    };
+
     const handleAction = async (id: string, status: "approved" | "rejected") => {
         try {
             const res = await fetch(`/api/admin/requests/${id}`, {
@@ -292,19 +299,24 @@ export default function AdminDashboard() {
                             usersCount={usersCount}
                             coursesCount={courses.length}
                             pendingRequests={requests.filter(r => r.status === "pending").length}
-                            totalRevenue={requests.reduce((acc, req) => req.status === "approved" ? acc + (req.paymentDetails.amount || 0) : acc, 0)}
+                            totalRevenue={requests.reduce((acc, req) => {
+                                const amount = getApprovedPaidAmount(req);
+                                return acc + amount;
+                            }, 0)}
                             dailyRevenue={requests.reduce((acc, req) => {
-                                if (req.status !== "approved") return acc;
+                                const amount = getApprovedPaidAmount(req);
+                                if (amount <= 0) return acc;
                                 const reqDate = new Date(req.createdAt).toDateString();
                                 const today = new Date().toDateString();
-                                return reqDate === today ? acc + (req.paymentDetails.amount || 0) : acc;
+                                return reqDate === today ? acc + amount : acc;
                             }, 0)}
                             monthlyRevenue={requests.reduce((acc, req) => {
-                                if (req.status !== "approved") return acc;
+                                const amount = getApprovedPaidAmount(req);
+                                if (amount <= 0) return acc;
                                 const reqDate = new Date(req.createdAt);
                                 const now = new Date();
                                 return (reqDate.getMonth() === now.getMonth() && reqDate.getFullYear() === now.getFullYear())
-                                    ? acc + (req.paymentDetails.amount || 0) : acc;
+                                    ? acc + amount : acc;
                             }, 0)}
                             bestSellingCourse={(() => {
                                 const counts: Record<string, number> = {};
