@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret_please_change";
+const JWT_SECRET = process.env.JWT_SECRET || "jwt_4o3uJ5Kf7Xn2Qv9Pz1Lm6Rs8Tt0Yw3Bh";
 
 // Basic in-memory rate limiting (for single-server/development)
 const rateLimit = new Map<string, { count: number; reset: number }>();

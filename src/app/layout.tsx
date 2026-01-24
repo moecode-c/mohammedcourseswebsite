@@ -20,7 +20,7 @@ const vt323 = VT323({
 });
 
 export const metadata: Metadata = {
-  title: "Gamified Learning Platform",
+  title: "Code Quest",
   description: "Level up your skills with our gamified courses.",
 };
 
