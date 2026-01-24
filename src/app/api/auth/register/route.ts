@@ -58,7 +58,8 @@ export async function POST(req: Request) {
 
         (await cookies()).set("session_token", token, {
             httpOnly: true,
-            secure: false, // Changed to false to allow login on local network (HTTP)
+            secure: false, // Allow HTTP (local network)
+            sameSite: "lax",
             maxAge: 60 * 60 * 24 * 7, // 7 days
             path: "/",
         });
