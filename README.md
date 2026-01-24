@@ -20,6 +20,22 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Leveling & XP (How it works)
+
+Leveling is based on total XP using a smooth curve so early levels are fast and later levels require more XP.
+
+Formula (in code):
+- Level is derived from: $\text{level} = \left\lfloor (\text{xp} / C)^{1/1.5} \right\rfloor$
+- XP required for a level: $\text{xpForLevel}(L) = C \cdot L^{1.5}$
+- Constant $C = 140$
+
+XP sources:
+- Completing a section: +50 XP
+- Completing all sections in a course: +500 XP bonus
+- Correct quiz answer: +10 XP
+
+The UI shows a toast with the XP amount and a reason whenever XP is granted.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

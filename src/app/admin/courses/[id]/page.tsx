@@ -94,12 +94,14 @@ const parseQuizCsv = (csvText: string) => {
         let correctOptionIndex = Number(rawCorrect);
 
         if (Number.isNaN(correctOptionIndex)) {
-            correctOptionIndex = 0;
+            correctOptionIndex = 1;
         }
 
-        if (correctOptionIndex >= 1 && correctOptionIndex <= options.length) {
-            correctOptionIndex = correctOptionIndex - 1;
+        if (correctOptionIndex < 1 || correctOptionIndex > options.length) {
+            correctOptionIndex = 1;
         }
+
+        correctOptionIndex = correctOptionIndex - 1;
 
         if (!questionText || options.length < 2) continue;
 
@@ -550,7 +552,7 @@ export default function EditCoursePage() {
                                                 <div>
                                                     <p className="text-sm text-slate-200 font-bold">Import from CSV</p>
                                                     <p className="text-xs text-slate-500 font-mono">
-                                                        Format: question, option1, option2, option3, option4, correctIndex (0 or 1-based).
+                                                        Format: question, option1, option2, option3, option4, correctIndex (1-based).
                                                     </p>
                                                 </div>
                                                 <label className="inline-flex items-center gap-2 text-xs text-primary cursor-pointer">
@@ -581,9 +583,9 @@ export default function EditCoursePage() {
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     </div>
-                                                    <input
+                                                    <textarea
                                                         placeholder="Question Text"
-                                                        className="w-full bg-slate-900 border border-slate-700 p-2 text-white mb-2"
+                                                        className="w-full bg-slate-900 border border-slate-700 p-2 text-white mb-2 min-h-[90px] font-mono text-sm whitespace-pre-wrap"
                                                         value={q.questionText}
                                                         onChange={e => {
                                                             const newQs = [...editForm.questions];

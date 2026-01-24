@@ -1,4 +1,4 @@
-export const LEVEL_FORMULA_CONST = 100;
+export const LEVEL_FORMULA_CONST = 140;
 
 export function calculateLevel(xp: number): number {
     if (xp === 0) return 1;

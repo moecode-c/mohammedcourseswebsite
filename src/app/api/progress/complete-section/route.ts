@@ -44,6 +44,10 @@ export async function POST(req: Request) {
 
         // Award XP
         const xpResult = await awardXP(payload.userId, 50, `completed-section-${sectionId}`);
+        const xpReasons: Array<{ amount: number; reason: string }> = [];
+        if (xpResult?.xpAwarded) {
+            xpReasons.push({ amount: xpResult.xpAwarded, reason: "Section completed" });
+        }
 
         // Check if course is fully completed
         const course = await Course.findById(courseId).populate("sections");
@@ -61,7 +65,10 @@ export async function POST(req: Request) {
                 const alreadyCompleted = user.completedCourses.some((id: any) => String(id) === String(courseId));
                 if (!alreadyCompleted) {
                     user.completedCourses.push(new mongoose.Types.ObjectId(courseId));
-                    await awardXP(payload.userId, 500, `completed-course-${courseId}`); // Bonus XP for course completion
+                    const courseXpResult = await awardXP(payload.userId, 500, `completed-course-${courseId}`); // Bonus XP for course completion
+                    if (courseXpResult?.xpAwarded) {
+                        xpReasons.push({ amount: courseXpResult.xpAwarded, reason: "Course completed bonus" });
+                    }
                     courseCompleted = true;
                 }
             }
@@ -69,7 +76,7 @@ export async function POST(req: Request) {
 
         await user.save();
 
-        return NextResponse.json({ success: true, xpResult, courseCompleted });
+        return NextResponse.json({ success: true, xpResult, courseCompleted, xpReasons });
     } catch (error) {
         console.error("Complete Section Error:", error);
         return NextResponse.json(

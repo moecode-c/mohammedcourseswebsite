@@ -14,7 +14,7 @@ interface QuizViewProps {
     sectionId: string;
     questions: Question[];
     answeredQuestions: string[];
-    onXPGain: (amount: number) => void;
+    onXPGain: (amount: number, reason: string) => void;
     onAnswerCorrect: (answerId: string) => void;
     isCompleted?: boolean; // Prop to force completed state
 }
@@ -71,7 +71,7 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
                 }
 
                 if (data.xpAwarded > 0) {
-                    onXPGain(data.xpAwarded);
+                    onXPGain(data.xpAwarded, data.xpReason || "Correct answer");
                 }
             }
         } catch (e) {
@@ -152,7 +152,9 @@ export function QuizView({ sectionId, questions, answeredQuestions, onXPGain, on
 
                         <h4 className="text-xl font-bold text-white mb-6 pl-4 flex items-start gap-3">
                             <span className="text-slate-500">#{qIdx + 1}</span>
-                            {q.questionText}
+                            <span className="whitespace-pre-wrap break-words">
+                                {q.questionText}
+                            </span>
                             {previouslyAnswered && !isAnsweredThisSession && (
                                 <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded ml-auto">Previously Answered</span>
                             )}

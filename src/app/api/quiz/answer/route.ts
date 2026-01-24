@@ -75,6 +75,7 @@ export async function POST(req: Request) {
         }
 
         let xpAwarded = 0;
+        let xpReason = "";
 
         // ONLY award XP if correct AND not already answered AND section not completed
         if (isCorrect) {
@@ -82,6 +83,7 @@ export async function POST(req: Request) {
                 // Award XP - pass the user object to avoid overwriting
                 const result = await awardXP(user, 10, `quiz-${answerId}`);
                 xpAwarded = result?.xpAwarded || 0;
+                if (xpAwarded > 0) xpReason = "Correct answer";
                 console.log(`[QUIZ-XP] Awarded ${xpAwarded} XP to ${user.email}`);
             } else {
                 console.log(`[QUIZ-XP] XP BLOCKED (Already Answered: ${alreadyAnswered}, Section Done: ${isSectionAlreadyDone})`);
@@ -136,6 +138,7 @@ export async function POST(req: Request) {
             isCorrect,
             correctOptionIndex: question.correctOptionIndex,
             xpAwarded,
+            xpReason,
             alreadyAnswered
         });
 

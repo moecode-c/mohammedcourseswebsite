@@ -22,7 +22,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
     const [completedSections, setCompletedSections] = useState<string[]>(user?.completedSections || []);
     const [answeredQuestions, setAnsweredQuestions] = useState<string[]>(user?.answeredQuestions || []);
     const [showUnlockModal, setShowUnlockModal] = useState(false);
-    const [xpGained, setXpGained] = useState<number | null>(null);
+    const [xpGained, setXpGained] = useState<{ amount: number; reason: string } | null>(null);
     const [isPendingAccess, setIsPendingAccess] = useState(hasPendingAccessRequest);
     const [showVideoModal, setShowVideoModal] = useState(false);
     const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
@@ -65,6 +65,11 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
         if (el.msRequestFullscreen) return el.msRequestFullscreen();
     };
 
+    const showXPGain = (amount: number, reason: string) => {
+        setXpGained({ amount, reason });
+        setTimeout(() => setXpGained(null), 3000);
+    };
+
     const handleComplete = async (sectionId: string) => {
         if (!user) {
             router.push("/login");
@@ -82,10 +87,16 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
 
             if (data.success) {
                 setCompletedSections([...completedSections, sectionId]);
-                // Show XP Toast
-                if (data.xpResult.xpAwarded > 0) {
-                    setXpGained(data.xpResult.xpAwarded);
-                    setTimeout(() => setXpGained(null), 3000);
+                if (data.xpReasons?.length) {
+                    const [first, second] = data.xpReasons;
+                    if (first?.amount > 0) {
+                        showXPGain(first.amount, first.reason);
+                    }
+                    if (second?.amount > 0) {
+                        setTimeout(() => showXPGain(second.amount, second.reason), 3200);
+                    }
+                } else if (data.xpResult?.xpAwarded > 0) {
+                    showXPGain(data.xpResult.xpAwarded, "Section completed");
                 }
             }
         } catch (e) {
@@ -244,8 +255,11 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
 
                 {/* XP Toast */}
                 {xpGained && (
-                    <div className="absolute top-4 right-4 sm:top-10 sm:right-10 animate-bounce bg-primary text-black font-heading px-3 sm:px-4 py-2 rounded shadow-[0_0_20px_var(--color-primary)] z-50 text-sm sm:text-base">
-                        +{xpGained} XP
+                    <div className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 animate-bounce bg-primary text-black font-heading px-3 sm:px-4 py-2 rounded shadow-[0_0_20px_var(--color-primary)] z-[10060] text-sm sm:text-base max-w-[70vw]">
+                        +{xpGained.amount} XP
+                        <div className="text-[10px] font-mono text-black/70 break-words">
+                            {xpGained.reason}
+                        </div>
                     </div>
                 )}
 
@@ -407,9 +421,8 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                                             questions={currentSection.questions || []}
                                                             answeredQuestions={answeredQuestions}
                                                             isCompleted={completedSections.includes(currentSection._id)}
-                                                            onXPGain={(amount) => {
-                                                                setXpGained(amount);
-                                                                setTimeout(() => setXpGained(null), 3000);
+                                                            onXPGain={(amount, reason) => {
+                                                                showXPGain(amount, reason);
                                                             }}
                                                             onAnswerCorrect={(id: string) => {
                                                                 if (!answeredQuestions.includes(id)) {
