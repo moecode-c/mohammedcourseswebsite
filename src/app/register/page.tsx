@@ -27,7 +27,7 @@ export default function RegisterPage() {
             const data = await res.json();
 
             if (res.ok) {
-                router.push("/dashboard");
+                router.push("/");
             } else {
                 setError(data.error || "Registration failed");
             }
