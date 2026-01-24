@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
         const requests = await AccessRequest.find({})
             .populate("userId", "name email")
-            .populate("courseId", "title price")
+            .populate("courseId", "title price discountPrice discountActive")
             .sort({ createdAt: 1 });
 
         return NextResponse.json({ requests });

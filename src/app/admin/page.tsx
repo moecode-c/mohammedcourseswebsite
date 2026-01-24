@@ -15,7 +15,7 @@ import { CheckCircle, XCircle, Trash } from "lucide-react";
 interface Request {
     _id: string;
     userId: { _id: string; name: string; email: string };
-    courseId: { _id: string; title: string; price: number };
+    courseId: { _id: string; title: string; price: number; discountPrice?: number; discountActive?: boolean };
     status: string;
     paymentDetails: { fullName: string; phoneNumber: string; transactionNotes: string; amount: number };
     createdAt: string;
@@ -129,8 +129,15 @@ export default function AdminDashboard() {
 
     const getApprovedPaidAmount = (req: Request) => {
         if (req.status !== "approved") return 0;
-        if (!req.courseId || !req.courseId.price || req.courseId.price <= 0) return 0;
-        const amount = req.paymentDetails?.amount || 0;
+        if (!req.courseId) return 0;
+
+        // Check if discount was active for this course
+        if (req.courseId.discountActive && req.courseId.discountPrice !== undefined) {
+            return req.courseId.discountPrice;
+        }
+
+        // Fallback to payment details amount if available, otherwise original price
+        const amount = req.paymentDetails?.amount || req.courseId.price || 0;
         return amount > 0 ? amount : 0;
     };
 
