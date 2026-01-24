@@ -64,9 +64,18 @@ export async function middleware(request: NextRequest) {
     }
 
     // Redirect logged-in users away from auth pages
+    // Redirect logged-in users away from auth pages
     if (pathname === "/login" || pathname === "/register") {
         if (token) {
-            return NextResponse.redirect(new URL("/", request.url));
+            try {
+                const secret = new TextEncoder().encode(JWT_SECRET);
+                await jwtVerify(token, secret);
+                // Token is valid, so redirect to home
+                return NextResponse.redirect(new URL("/", request.url));
+            } catch (e) {
+                // Token is invalid/expired - allow user to stay on login page
+                // Ideally we should clear the cookie but we can let the login page handle overwriting it
+            }
         }
     }
 
