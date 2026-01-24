@@ -31,6 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+      </head>
       <body
         suppressHydrationWarning
         className={`${inter.variable} ${pressStart2P.variable} ${vt323.variable} antialiased bg-slate-950 text-slate-100`}
