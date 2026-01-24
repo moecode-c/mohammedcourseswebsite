@@ -9,7 +9,15 @@ import Course from "@/models/Course"; // Ensure populated
 export async function GET(req: Request) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get("session_token")?.value;
+        let token = cookieStore.get("session_token")?.value;
+
+        // Fallback: Check Authorization Header
+        if (!token) {
+            const authHeader = req.headers.get("Authorization");
+            if (authHeader?.startsWith("Bearer ")) {
+                token = authHeader.split(" ")[1];
+            }
+        }
 
         if (!token) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

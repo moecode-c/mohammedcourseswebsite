@@ -106,7 +106,11 @@ export default function AdminDashboard() {
                 const data = await res.json();
                 setRequests(data.requests);
             } else {
-                router.push("/login");
+                if (res.status === 401 || res.status === 403) {
+                    setLoading(false);
+                    // Instead of redirecting, we stay here and show access denied
+                    return;
+                }
             }
         } catch (e) {
             console.error(e);
@@ -287,252 +291,271 @@ export default function AdminDashboard() {
         }
     };
 
+};
+
+// If data load failed due to auth, show manual entry
+if (!loading && requests.length === 0 && courses.length === 0 && usersCount === 0) {
     return (
-        <main className="min-h-screen bg-slate-950 text-white flex flex-col lg:flex-row">
-            <AdminSidebar currentView={currentView} setCurrentView={setCurrentView} />
+        <main className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+            <div className="w-full max-w-md bg-slate-900 border border-slate-700 p-8 rounded-lg text-center">
+                <h1 className="text-3xl font-heading text-red-500 mb-4">RESTRICTED AREA</h1>
+                <p className="text-slate-400 font-mono mb-8">
+                    Secure connection failed. Please re-authenticate.
+                </p>
+                <GameButton size="lg" onClick={() => router.push("/login")}>
+                    LOGIN AS ADMIN
+                </GameButton>
+            </div>
+        </main>
+    );
+}
 
-            <div className="flex-1 p-6 lg:p-10 overflow-y-auto max-h-screen">
-                <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800">
-                    <div>
-                        <h1 className="text-3xl font-heading text-white">{currentView.replace("-", " ").toUpperCase()}</h1>
-                        <p className="text-slate-500 font-mono text-sm">SYSTEM STATUS: OPERATIONAL</p>
-                    </div>
-                    <GameButton variant="ghost" onClick={() => router.push("/dashboard")}>EXIT DASHBOARD</GameButton>
-                </header>
+return (
+    <main className="min-h-screen bg-slate-950 text-white flex flex-col lg:flex-row">
+        <AdminSidebar currentView={currentView} setCurrentView={setCurrentView} />
 
-                {currentView === "overview" && (
-                    <>
-                        <AdminStats
-                            usersCount={usersCount}
-                            coursesCount={courses.length}
-                            pendingRequests={requests.filter(r => r.status === "pending").length}
-                            totalRevenue={requests.reduce((acc, req) => {
-                                const amount = getApprovedPaidAmount(req);
-                                return acc + amount;
-                            }, 0)}
-                            dailyRevenue={requests.reduce((acc, req) => {
-                                const amount = getApprovedPaidAmount(req);
-                                if (amount <= 0) return acc;
-                                const reqDate = new Date(req.createdAt).toDateString();
-                                const today = new Date().toDateString();
-                                return reqDate === today ? acc + amount : acc;
-                            }, 0)}
-                            monthlyRevenue={requests.reduce((acc, req) => {
-                                const amount = getApprovedPaidAmount(req);
-                                if (amount <= 0) return acc;
-                                const reqDate = new Date(req.createdAt);
-                                const now = new Date();
-                                return (reqDate.getMonth() === now.getMonth() && reqDate.getFullYear() === now.getFullYear())
-                                    ? acc + amount : acc;
-                            }, 0)}
-                            bestSellingCourse={(() => {
-                                const counts: Record<string, number> = {};
-                                requests.filter(r => r.status === "approved" && r.courseId).forEach(r => {
-                                    // Handle populated courseId
-                                    const title = (r.courseId as any).title || "Unknown";
-                                    counts[title] = (counts[title] || 0) + 1;
-                                });
-                                return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, "") || "No Sales Yet";
-                            })()}
-                        />
-                        <AdminAnalytics users={allUsers} requests={requests} />
-                    </>
-                )}
+        <div className="flex-1 p-6 lg:p-10 overflow-y-auto max-h-screen">
+            <header className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800">
+                <div>
+                    <h1 className="text-3xl font-heading text-white">{currentView.replace("-", " ").toUpperCase()}</h1>
+                    <p className="text-slate-500 font-mono text-sm">SYSTEM STATUS: OPERATIONAL</p>
+                </div>
+                <GameButton variant="ghost" onClick={() => router.push("/dashboard")}>EXIT DASHBOARD</GameButton>
+            </header>
 
-                {currentView === "course-dashboard" && (
-                    <AdminCourseDashboard
-                        courses={courses}
-                        users={allUsers}
-                        requests={requests}
-                        onGrantAccess={grantCourseAccess}
-                        onRevokeAccess={revokeCourseAccess}
+            {currentView === "overview" && (
+                <>
+                    <AdminStats
+                        usersCount={usersCount}
+                        coursesCount={courses.length}
+                        pendingRequests={requests.filter(r => r.status === "pending").length}
+                        totalRevenue={requests.reduce((acc, req) => {
+                            const amount = getApprovedPaidAmount(req);
+                            return acc + amount;
+                        }, 0)}
+                        dailyRevenue={requests.reduce((acc, req) => {
+                            const amount = getApprovedPaidAmount(req);
+                            if (amount <= 0) return acc;
+                            const reqDate = new Date(req.createdAt).toDateString();
+                            const today = new Date().toDateString();
+                            return reqDate === today ? acc + amount : acc;
+                        }, 0)}
+                        monthlyRevenue={requests.reduce((acc, req) => {
+                            const amount = getApprovedPaidAmount(req);
+                            if (amount <= 0) return acc;
+                            const reqDate = new Date(req.createdAt);
+                            const now = new Date();
+                            return (reqDate.getMonth() === now.getMonth() && reqDate.getFullYear() === now.getFullYear())
+                                ? acc + amount : acc;
+                        }, 0)}
+                        bestSellingCourse={(() => {
+                            const counts: Record<string, number> = {};
+                            requests.filter(r => r.status === "approved" && r.courseId).forEach(r => {
+                                // Handle populated courseId
+                                const title = (r.courseId as any).title || "Unknown";
+                                counts[title] = (counts[title] || 0) + 1;
+                            });
+                            return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, "") || "No Sales Yet";
+                        })()}
                     />
-                )}
+                    <AdminAnalytics users={allUsers} requests={requests} />
+                </>
+            )}
 
-                {currentView === "users" && <AdminUsers />}
+            {currentView === "course-dashboard" && (
+                <AdminCourseDashboard
+                    courses={courses}
+                    users={allUsers}
+                    requests={requests}
+                    onGrantAccess={grantCourseAccess}
+                    onRevokeAccess={revokeCourseAccess}
+                />
+            )}
 
-                {currentView === "certificates" && <AdminCertificates />}
+            {currentView === "users" && <AdminUsers />}
 
-                {(currentView === "requests" || currentView === "overview") && (
-                    <section className={currentView === "overview" ? "" : "animate-fade-in-up"}>
-                        {currentView === "overview" && <h2 className="text-xl font-heading text-slate-400 mb-4 mt-8">PENDING REQUESTS</h2>}
+            {currentView === "certificates" && <AdminCertificates />}
 
-                        {loading ? (
-                            <div className="text-slate-500 font-mono animate-pulse">Data Stream Loading...</div>
-                        ) : requests.filter(r => r.status === "pending").length === 0 ? (
-                            <div className="text-slate-600 font-mono border border-slate-800 p-8 text-center rounded">
-                                No pending requests found.
-                            </div>
-                        ) : (
-                            <div className="grid gap-4">
-                                {requests.filter(r => r.status === "pending").map((req) => (
-                                    <div key={req._id} className="bg-slate-900 border border-slate-700 p-4 rounded flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                        <div className="flex-grow">
-                                            <div className="flex gap-2 mb-1">
-                                                <span className="text-xs font-mono bg-primary/20 text-primary px-2 rounded">USER: {req.userId?.name}</span>
-                                                <span className="text-xs font-mono bg-secondary/20 text-secondary px-2 rounded">COURSE: {req.courseId?.title}</span>
-                                            </div>
-                                            <div className="font-mono text-sm text-slate-300">
-                                                <span className="text-slate-500">PAYMENT FROM:</span> {req.paymentDetails.fullName} <span className="text-slate-600">|</span> {req.paymentDetails.phoneNumber}
-                                            </div>
-                                            {req.paymentDetails.transactionNotes && (
-                                                <div className="text-xs text-slate-500 mt-1 italic">"{req.paymentDetails.transactionNotes}"</div>
-                                            )}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <GameButton size="sm" variant="danger" onClick={() => handleDeleteRequest(req._id)} title="Delete Request"><Trash className="w-4 h-4" /></GameButton>
-                                            <GameButton size="sm" variant="danger" onClick={() => handleAction(req._id, "rejected")}><XCircle className="w-4 h-4" /></GameButton>
-                                            <GameButton size="sm" variant="primary" onClick={() => handleAction(req._id, "approved")}><CheckCircle className="w-4 h-4" /> APPROVE</GameButton>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </section>
-                )}
+            {(currentView === "requests" || currentView === "overview") && (
+                <section className={currentView === "overview" ? "" : "animate-fade-in-up"}>
+                    {currentView === "overview" && <h2 className="text-xl font-heading text-slate-400 mb-4 mt-8">PENDING REQUESTS</h2>}
 
-                {currentView === "messages" && (
-                    <section className="animate-fade-in-up">
-                        <h2 className="text-xl font-heading text-slate-400 mb-4">INBOX</h2>
-                        {loading ? (
-                            <div className="text-slate-500 font-mono animate-pulse">Data Stream Loading...</div>
-                        ) : messages.length === 0 ? (
-                            <div className="text-slate-600 font-mono border border-slate-800 p-8 text-center rounded">
-                                No messages yet.
-                            </div>
-                        ) : (
-                            <div className="grid gap-4">
-                                {messages.map((msg) => (
-                                    <div key={msg._id} className="bg-slate-900 border border-slate-700 p-4 rounded flex flex-col gap-3">
-                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                                            <div className="flex flex-wrap gap-2 items-center">
-                                                <span className="text-xs font-mono bg-primary/20 text-primary px-2 rounded">FROM: {msg.name}</span>
-                                                <span className="text-xs font-mono bg-secondary/20 text-secondary px-2 rounded">PHONE: {msg.phone}</span>
-                                                <span className="text-xs font-mono bg-slate-800 text-slate-300 px-2 rounded">SOURCE: {msg.source}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-                                                {new Date(msg.createdAt).toLocaleString()}
-                                            </div>
-                                        </div>
-                                        <p className="text-slate-300 font-mono leading-relaxed">{msg.message}</p>
-                                        <div className="flex justify-end">
-                                            <GameButton size="sm" variant="danger" onClick={() => handleDeleteMessage(msg._id)} title="Delete Message">
-                                                <Trash className="w-4 h-4" />
-                                            </GameButton>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </section>
-                )}
-
-                {currentView === "courses" && (
-                    <section className="animate-fade-in-up">
-                        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-                            <GameButton onClick={() => setShowCreateCourse(!showCreateCourse)}>
-                                {showCreateCourse ? "CANCEL CREATE" : "+ CREATE NEW COURSE"}
-                            </GameButton>
-                            <input
-                                type="text"
-                                placeholder="Search courses..."
-                                className="bg-slate-900 border border-slate-700 p-2 rounded text-white min-w-[250px] focus:outline-none focus:border-primary"
-                                value={courseSearch}
-                                onChange={(e) => setCourseSearch(e.target.value)}
-                            />
+                    {loading ? (
+                        <div className="text-slate-500 font-mono animate-pulse">Data Stream Loading...</div>
+                    ) : requests.filter(r => r.status === "pending").length === 0 ? (
+                        <div className="text-slate-600 font-mono border border-slate-800 p-8 text-center rounded">
+                            No pending requests found.
                         </div>
-
-                        {showCreateCourse && (
-                            <div className="bg-slate-900 border border-primary/50 p-6 rounded shadow-[0_0_20px_rgba(57,255,20,0.1)] mb-8 animate-fade-in-up">
-                                <h3 className="text-lg font-heading text-primary mb-4">CREATE NEW COURSE</h3>
-                                <form onSubmit={handleCreateCourse} className="space-y-4 max-w-2xl">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input placeholder="Course Title" className="bg-slate-900 border border-slate-700 p-2 text-white w-full" value={newCourse.title} onChange={e => setNewCourse({ ...newCourse, title: e.target.value })} required />
-                                        <select className="bg-slate-950 border border-slate-700 p-2 text-white w-full" value={newCourse.difficulty} onChange={e => setNewCourse({ ...newCourse, difficulty: e.target.value })}>
-                                            <option value="beginner">Beginner</option>
-                                            <option value="intermediate">Intermediate</option>
-                                            <option value="advanced">Advanced</option>
-                                        </select>
-                                    </div>
-                                    <textarea placeholder="Description" className="bg-slate-900 border border-slate-700 p-2 text-white w-full h-24" value={newCourse.description} onChange={e => setNewCourse({ ...newCourse, description: e.target.value })} required />
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                                        <input
-                                            type="number"
-                                            placeholder="Price (EGP)"
-                                            className="bg-slate-950 border border-slate-700 p-2 text-white w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                                            value={newCourse.isFree ? 0 : newCourse.price}
-                                            onChange={e => setNewCourse({ ...newCourse, price: Number(e.target.value) })}
-                                            disabled={newCourse.isFree}
-                                        />
-                                        <div className="bg-slate-950 border border-slate-700 p-2 w-full flex items-center gap-2">
-                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="text-white text-xs" />
-                                            {uploading && <span className="text-secondary text-xs animate-pulse">UPLOADING...</span>}
+                    ) : (
+                        <div className="grid gap-4">
+                            {requests.filter(r => r.status === "pending").map((req) => (
+                                <div key={req._id} className="bg-slate-900 border border-slate-700 p-4 rounded flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div className="flex-grow">
+                                        <div className="flex gap-2 mb-1">
+                                            <span className="text-xs font-mono bg-primary/20 text-primary px-2 rounded">USER: {req.userId?.name}</span>
+                                            <span className="text-xs font-mono bg-secondary/20 text-secondary px-2 rounded">COURSE: {req.courseId?.title}</span>
                                         </div>
-                                        {newCourse.thumbnail && <div className="text-xs text-primary truncate px-2">{newCourse.thumbnail}</div>}
-                                        <label className="flex items-center gap-2 text-white cursor-pointer"><input type="checkbox" checked={newCourse.isFree} onChange={e => setNewCourse({ ...newCourse, isFree: e.target.checked, price: e.target.checked ? 0 : newCourse.price })} /> Free Access</label>
-                                        <label className="flex items-center gap-2 text-white cursor-pointer"><input type="checkbox" checked={newCourse.isFeatured} onChange={e => setNewCourse({ ...newCourse, isFeatured: e.target.checked })} /> Featured</label>
-                                    </div>
-
-                                    {/* Discount Row */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-slate-950/30 p-3 rounded border border-slate-800">
-                                        <label className="flex items-center gap-2 text-yellow-400 cursor-pointer text-sm font-bold">
-                                            <input
-                                                type="checkbox"
-                                                checked={newCourse.discountActive}
-                                                onChange={e => setNewCourse({ ...newCourse, discountActive: e.target.checked })}
-                                                disabled={newCourse.isFree}
-                                            /> 🏷️ Sales Active
-                                        </label>
-                                        {newCourse.discountActive && !newCourse.isFree && (
-                                            <input
-                                                type="number"
-                                                placeholder="Discount Price (EGP)"
-                                                className="bg-slate-950 border border-yellow-500/30 p-2 text-yellow-400 w-full text-sm"
-                                                value={newCourse.discountPrice || ""}
-                                                onChange={e => setNewCourse({ ...newCourse, discountPrice: Number(e.target.value) })}
-                                            />
+                                        <div className="font-mono text-sm text-slate-300">
+                                            <span className="text-slate-500">PAYMENT FROM:</span> {req.paymentDetails.fullName} <span className="text-slate-600">|</span> {req.paymentDetails.phoneNumber}
+                                        </div>
+                                        {req.paymentDetails.transactionNotes && (
+                                            <div className="text-xs text-slate-500 mt-1 italic">"{req.paymentDetails.transactionNotes}"</div>
                                         )}
                                     </div>
-                                    <GameButton type="submit">CREATE COURSE</GameButton>
-                                </form>
-                            </div>
-                        )}
-
-                        <div className="grid gap-4">
-                            {courses.filter(c => c.title.toLowerCase().includes(courseSearch.toLowerCase())).map(course => (
-                                <div key={course._id} className="border border-slate-700 p-4 bg-slate-950 rounded hover:border-slate-500 transition-colors">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
-                                            <div>
-                                                <h4 className="font-bold text-lg">{course.title}</h4>
-                                                <div className="text-xs text-slate-500 font-mono mt-1">
-                                                    {course.sections.length} SECTIONS | {course.isFree ? "FREE" : `${course.price || 0} EGP`}
-                                                </div>
-                                            </div>
-                                            <button onClick={() => toggleFeatured(course._id, course.isFeatured)} className={`px-2 py-0.5 text-xs font-mono rounded border ${course.isFeatured ? "bg-yellow-500/20 text-yellow-500 border-yellow-500" : "bg-slate-800 text-slate-500 border-slate-700"}`}>
-                                                {course.isFeatured ? "★ FEATURED" : "☆ NOT FEATURED"}
-                                            </button>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <GameButton size="sm" onClick={() => router.push(`/admin/courses/${course._id}`)}>
-                                                EDIT COURSE
-                                            </GameButton>
-                                            <GameButton
-                                                size="sm"
-                                                variant="danger"
-                                                onClick={() => handleDeleteCourse(course._id, course.title)}
-                                                title="Delete course"
-                                            >
-                                                <Trash className="w-4 h-4" />
-                                            </GameButton>
-                                        </div>
+                                    <div className="flex gap-2">
+                                        <GameButton size="sm" variant="danger" onClick={() => handleDeleteRequest(req._id)} title="Delete Request"><Trash className="w-4 h-4" /></GameButton>
+                                        <GameButton size="sm" variant="danger" onClick={() => handleAction(req._id, "rejected")}><XCircle className="w-4 h-4" /></GameButton>
+                                        <GameButton size="sm" variant="primary" onClick={() => handleAction(req._id, "approved")}><CheckCircle className="w-4 h-4" /> APPROVE</GameButton>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </section>
-                )}
-            </div>
-        </main>
-    );
+                    )}
+                </section>
+            )}
+
+            {currentView === "messages" && (
+                <section className="animate-fade-in-up">
+                    <h2 className="text-xl font-heading text-slate-400 mb-4">INBOX</h2>
+                    {loading ? (
+                        <div className="text-slate-500 font-mono animate-pulse">Data Stream Loading...</div>
+                    ) : messages.length === 0 ? (
+                        <div className="text-slate-600 font-mono border border-slate-800 p-8 text-center rounded">
+                            No messages yet.
+                        </div>
+                    ) : (
+                        <div className="grid gap-4">
+                            {messages.map((msg) => (
+                                <div key={msg._id} className="bg-slate-900 border border-slate-700 p-4 rounded flex flex-col gap-3">
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                        <div className="flex flex-wrap gap-2 items-center">
+                                            <span className="text-xs font-mono bg-primary/20 text-primary px-2 rounded">FROM: {msg.name}</span>
+                                            <span className="text-xs font-mono bg-secondary/20 text-secondary px-2 rounded">PHONE: {msg.phone}</span>
+                                            <span className="text-xs font-mono bg-slate-800 text-slate-300 px-2 rounded">SOURCE: {msg.source}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                                            {new Date(msg.createdAt).toLocaleString()}
+                                        </div>
+                                    </div>
+                                    <p className="text-slate-300 font-mono leading-relaxed">{msg.message}</p>
+                                    <div className="flex justify-end">
+                                        <GameButton size="sm" variant="danger" onClick={() => handleDeleteMessage(msg._id)} title="Delete Message">
+                                            <Trash className="w-4 h-4" />
+                                        </GameButton>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            )}
+
+            {currentView === "courses" && (
+                <section className="animate-fade-in-up">
+                    <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+                        <GameButton onClick={() => setShowCreateCourse(!showCreateCourse)}>
+                            {showCreateCourse ? "CANCEL CREATE" : "+ CREATE NEW COURSE"}
+                        </GameButton>
+                        <input
+                            type="text"
+                            placeholder="Search courses..."
+                            className="bg-slate-900 border border-slate-700 p-2 rounded text-white min-w-[250px] focus:outline-none focus:border-primary"
+                            value={courseSearch}
+                            onChange={(e) => setCourseSearch(e.target.value)}
+                        />
+                    </div>
+
+                    {showCreateCourse && (
+                        <div className="bg-slate-900 border border-primary/50 p-6 rounded shadow-[0_0_20px_rgba(57,255,20,0.1)] mb-8 animate-fade-in-up">
+                            <h3 className="text-lg font-heading text-primary mb-4">CREATE NEW COURSE</h3>
+                            <form onSubmit={handleCreateCourse} className="space-y-4 max-w-2xl">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input placeholder="Course Title" className="bg-slate-900 border border-slate-700 p-2 text-white w-full" value={newCourse.title} onChange={e => setNewCourse({ ...newCourse, title: e.target.value })} required />
+                                    <select className="bg-slate-950 border border-slate-700 p-2 text-white w-full" value={newCourse.difficulty} onChange={e => setNewCourse({ ...newCourse, difficulty: e.target.value })}>
+                                        <option value="beginner">Beginner</option>
+                                        <option value="intermediate">Intermediate</option>
+                                        <option value="advanced">Advanced</option>
+                                    </select>
+                                </div>
+                                <textarea placeholder="Description" className="bg-slate-900 border border-slate-700 p-2 text-white w-full h-24" value={newCourse.description} onChange={e => setNewCourse({ ...newCourse, description: e.target.value })} required />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                    <input
+                                        type="number"
+                                        placeholder="Price (EGP)"
+                                        className="bg-slate-950 border border-slate-700 p-2 text-white w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                                        value={newCourse.isFree ? 0 : newCourse.price}
+                                        onChange={e => setNewCourse({ ...newCourse, price: Number(e.target.value) })}
+                                        disabled={newCourse.isFree}
+                                    />
+                                    <div className="bg-slate-950 border border-slate-700 p-2 w-full flex items-center gap-2">
+                                        <input type="file" accept="image/*" onChange={handleImageUpload} className="text-white text-xs" />
+                                        {uploading && <span className="text-secondary text-xs animate-pulse">UPLOADING...</span>}
+                                    </div>
+                                    {newCourse.thumbnail && <div className="text-xs text-primary truncate px-2">{newCourse.thumbnail}</div>}
+                                    <label className="flex items-center gap-2 text-white cursor-pointer"><input type="checkbox" checked={newCourse.isFree} onChange={e => setNewCourse({ ...newCourse, isFree: e.target.checked, price: e.target.checked ? 0 : newCourse.price })} /> Free Access</label>
+                                    <label className="flex items-center gap-2 text-white cursor-pointer"><input type="checkbox" checked={newCourse.isFeatured} onChange={e => setNewCourse({ ...newCourse, isFeatured: e.target.checked })} /> Featured</label>
+                                </div>
+
+                                {/* Discount Row */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-slate-950/30 p-3 rounded border border-slate-800">
+                                    <label className="flex items-center gap-2 text-yellow-400 cursor-pointer text-sm font-bold">
+                                        <input
+                                            type="checkbox"
+                                            checked={newCourse.discountActive}
+                                            onChange={e => setNewCourse({ ...newCourse, discountActive: e.target.checked })}
+                                            disabled={newCourse.isFree}
+                                        /> 🏷️ Sales Active
+                                    </label>
+                                    {newCourse.discountActive && !newCourse.isFree && (
+                                        <input
+                                            type="number"
+                                            placeholder="Discount Price (EGP)"
+                                            className="bg-slate-950 border border-yellow-500/30 p-2 text-yellow-400 w-full text-sm"
+                                            value={newCourse.discountPrice || ""}
+                                            onChange={e => setNewCourse({ ...newCourse, discountPrice: Number(e.target.value) })}
+                                        />
+                                    )}
+                                </div>
+                                <GameButton type="submit">CREATE COURSE</GameButton>
+                            </form>
+                        </div>
+                    )}
+
+                    <div className="grid gap-4">
+                        {courses.filter(c => c.title.toLowerCase().includes(courseSearch.toLowerCase())).map(course => (
+                            <div key={course._id} className="border border-slate-700 p-4 bg-slate-950 rounded hover:border-slate-500 transition-colors">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-4">
+                                        <div>
+                                            <h4 className="font-bold text-lg">{course.title}</h4>
+                                            <div className="text-xs text-slate-500 font-mono mt-1">
+                                                {course.sections.length} SECTIONS | {course.isFree ? "FREE" : `${course.price || 0} EGP`}
+                                            </div>
+                                        </div>
+                                        <button onClick={() => toggleFeatured(course._id, course.isFeatured)} className={`px-2 py-0.5 text-xs font-mono rounded border ${course.isFeatured ? "bg-yellow-500/20 text-yellow-500 border-yellow-500" : "bg-slate-800 text-slate-500 border-slate-700"}`}>
+                                            {course.isFeatured ? "★ FEATURED" : "☆ NOT FEATURED"}
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <GameButton size="sm" onClick={() => router.push(`/admin/courses/${course._id}`)}>
+                                            EDIT COURSE
+                                        </GameButton>
+                                        <GameButton
+                                            size="sm"
+                                            variant="danger"
+                                            onClick={() => handleDeleteCourse(course._id, course.title)}
+                                            title="Delete course"
+                                        >
+                                            <Trash className="w-4 h-4" />
+                                        </GameButton>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+        </div>
+    </main>
+);
 }

@@ -8,7 +8,16 @@ import { cookies } from "next/headers";
 export async function GET(req: Request) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get("session_token")?.value;
+        let token = cookieStore.get("session_token")?.value;
+
+        // Fallback: Check Authorization Header
+        if (!token) {
+            const authHeader = req.headers.get("Authorization");
+            if (authHeader?.startsWith("Bearer ")) {
+                token = authHeader.split(" ")[1];
+            }
+        }
+
         if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const payload = verifyToken(token);
@@ -50,7 +59,16 @@ export async function GET(req: Request) {
 export async function DELETE(req: Request) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get("session_token")?.value;
+        let token = cookieStore.get("session_token")?.value;
+
+        // Fallback: Check Authorization Header
+        if (!token) {
+            const authHeader = req.headers.get("Authorization");
+            if (authHeader?.startsWith("Bearer ")) {
+                token = authHeader.split(" ")[1];
+            }
+        }
+
         if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const payload = verifyToken(token);
