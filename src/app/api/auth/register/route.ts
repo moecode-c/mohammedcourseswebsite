@@ -14,7 +14,7 @@ export async function POST(req: Request) {
         if (limitStatus.limited) {
             const remainingMinutes = Math.ceil((limitStatus.resetTime - Date.now()) / 60000);
             return NextResponse.json(
-                { error: `Too many registration attempts. Please try again in ${remainingMinutes} minutes.` },
+                { error: "Too many registration attempts. Please try again in " + remainingMinutes + " minutes." },
                 { status: 429 }
             );
         }
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 
         (await cookies()).set("session_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: false, // Changed to false to allow login on local network (HTTP)
             maxAge: 60 * 60 * 24 * 7, // 7 days
             path: "/",
         });

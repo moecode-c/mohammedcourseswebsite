@@ -1,10 +1,9 @@
-```
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { comparePassword, signToken } from "@/lib/auth";
 import { cookies } from "next/headers";
-import { rateLimit } from "@/lib/rate-limit"; // Changed import path
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
     try {
@@ -15,7 +14,7 @@ export async function POST(req: Request) {
         if (limitStatus.limited) {
             const remainingMinutes = Math.ceil((limitStatus.resetTime - Date.now()) / 60000);
             return NextResponse.json(
-                { error: `Too many login attempts.Please try again in ${ remainingMinutes } minutes.` },
+                { error: "Too many login attempts. Please try again in " + remainingMinutes + " minutes." },
                 { status: 429 }
             );
         }
@@ -62,7 +61,7 @@ export async function POST(req: Request) {
 
         (await cookies()).set("session_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: false, // Changed to false to allow login on local network (HTTP)
             maxAge: 60 * 60 * 24 * 7, // 7 days
             path: "/",
         });

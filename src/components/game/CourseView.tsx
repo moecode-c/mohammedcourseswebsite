@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { GameButton } from "@/components/ui/GameButton";
 import { GameCard } from "@/components/ui/GameCard";
 import { GameInput } from "@/components/ui/GameInput";
-import { Lock, Play, CheckCircle, Smartphone, Award } from "lucide-react";
+import { Lock, Play, CheckCircle, Smartphone, Award, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { XPBar } from "@/components/game/XPBar";
 import { QuizView } from "@/components/game/QuizView";
@@ -478,6 +478,26 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                             >
                                                 {completedSections.includes(currentSection._id) ? "MISSION COMPLETED" : "MARK COMPLETE (+50 XP)"}
                                             </GameButton>
+
+                                            {/* Next Stage Button */}
+                                            {(() => {
+                                                const currentIndex = course.sections.findIndex((s: any) => s._id === currentSection._id);
+                                                const nextSection = course.sections[currentIndex + 1];
+
+                                                if (nextSection && completedSections.includes(currentSection._id)) {
+                                                    return (
+                                                        <GameButton
+                                                            size="lg"
+                                                            variant="secondary"
+                                                            className="ml-4 animate-pulse"
+                                                            onClick={() => setCurrentSection(nextSection)}
+                                                        >
+                                                            NEXT STAGE <ArrowRight className="w-4 h-4 ml-2" />
+                                                        </GameButton>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
                                         </div>
                                     </div>
                                 )}

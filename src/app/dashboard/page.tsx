@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { GameCard } from "@/components/ui/GameCard";
 import { GameButton } from "@/components/ui/GameButton";
+import { LevelPath } from "@/components/game/LevelPath";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import Link from "next/link";
@@ -114,6 +115,11 @@ export default async function DashboardPage() {
                             <div className="text-3xl font-heading text-white">{enrolledCourses.length}</div>
                             <div className="text-xs font-mono text-slate-500">ENROLLED</div>
                         </GameCard>
+                    </div>
+
+                    {/* Level Path */}
+                    <div className="mt-8">
+                        <LevelPath xp={user.xp || 0} />
                     </div>
                 </section>
 
