@@ -11,10 +11,13 @@ import Squares from "@/components/ui/Squares";
 import dynamic from "next/dynamic";
 import { ContactSection } from "@/components/ui/ContactSection";
 
-const ModelViewerWrapper = dynamic(() => import("@/components/ui/ModelViewerWrapper"), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-slate-900 animate-pulse rounded-xl" />
-});
+const ModelViewerWrapper = dynamic(
+  () => import("@/components/ui/ModelViewerWrapper"),
+  {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-slate-900 animate-pulse rounded-xl" />
+  }
+);
 
 export default async function Home() {
   await dbConnect();
