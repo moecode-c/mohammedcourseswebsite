@@ -70,11 +70,11 @@ export async function middleware(request: NextRequest) {
             try {
                 const secret = new TextEncoder().encode(JWT_SECRET);
                 await jwtVerify(token, secret);
-                // Token is valid, so redirect to home
+                console.log("Middleware: Valid token found on auth page, redirecting to home.");
                 return NextResponse.redirect(new URL("/", request.url));
             } catch (e) {
-                // Token is invalid/expired - allow user to stay on login page
-                // Ideally we should clear the cookie but we can let the login page handle overwriting it
+                console.log("Middleware: Token invalid/expired on auth page, allowing access.");
+                // Token is invalid - allow access (and maybe response.cookies.delete could go here if we could modify response)
             }
         }
     }
