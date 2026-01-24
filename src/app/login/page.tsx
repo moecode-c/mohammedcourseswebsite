@@ -98,6 +98,15 @@ export default function LoginPage() {
                         Create Character
                     </Link>
                 </p>
+
+                <div className="mt-8 text-center">
+                    <Link
+                        href="/"
+                        className="text-sm text-slate-500 hover:text-white transition-colors inline-flex items-center gap-2 font-mono group"
+                    >
+                        <span className="group-hover:-translate-x-1 transition-transform">←</span> Return to Main Menu
+                    </Link>
+                </div>
             </div>
         </main>
     );
