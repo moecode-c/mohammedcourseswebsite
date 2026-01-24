@@ -28,6 +28,13 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
     const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
     const videoFrameRef = useRef<HTMLIFrameElement | null>(null);
 
+    const isDiscounted = !course.isFree
+        && course.discountActive
+        && course.discountPrice !== undefined
+        && course.discountPrice !== null
+        && course.discountPrice < course.price;
+    const effectivePrice = course.isFree ? 0 : (isDiscounted ? course.discountPrice : course.price);
+
     // Payment Form State
     const [paymentForm, setPaymentForm] = useState({ fullName: "", phoneNumber: "", notes: "" });
     const [paymentStatus, setPaymentStatus] = useState("idle"); // idle, submitting, success, error
@@ -526,7 +533,16 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                         <GameCard className="w-full max-w-sm sm:max-w-lg bg-slate-900 border-primary shadow-[0_0_50px_rgba(57,255,20,0.1)] my-auto p-4 sm:p-6">
                             <h3 className="text-xl sm:text-2xl font-heading text-primary mb-2 text-center">UNLOCK ACCESS</h3>
                             <div className="text-center mb-4 sm:mb-6">
-                                <span className="text-2xl sm:text-3xl font-heading text-white">{course.price} EGP</span>
+                                {course.isFree ? (
+                                    <span className="text-2xl sm:text-3xl font-heading text-white">FREE</span>
+                                ) : isDiscounted ? (
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-xs font-mono text-slate-400 line-through">{course.price} EGP</span>
+                                        <span className="text-2xl sm:text-3xl font-heading text-white">{course.discountPrice} EGP</span>
+                                    </div>
+                                ) : (
+                                    <span className="text-2xl sm:text-3xl font-heading text-white">{course.price} EGP</span>
+                                )}
                             </div>
                             <p className="text-slate-400 text-sm sm:text-base mb-5 sm:mb-6 font-mono leading-relaxed">
                                 To unlock this mission pack, please transfer the fee via Instapay and submit your details below. An admin will verify your clearance.
@@ -544,7 +560,7 @@ export function CourseView({ course, user, hasPendingCertificate = false, hasPen
                                     <div className="bg-arcade/10 border border-arcade/50 rounded p-3 sm:p-4 mb-4">
                                         <h4 className="font-heading text-arcade text-xs sm:text-sm mb-2">📱 PAYMENT INSTRUCTIONS</h4>
                                         <ol className="text-xs sm:text-sm text-slate-300 space-y-2 font-mono list-decimal list-inside">
-                                            <li>Send <span className="text-white font-bold">{course.price || 0} EGP</span> via Instapay</li>
+                                            <li>Send <span className="text-white font-bold">{effectivePrice || 0} EGP</span> via Instapay</li>
                                             <li>Take a screenshot of the transaction</li>
                                             <li>Send screenshot to WhatsApp: <span className="text-white font-bold">01022138836</span></li>
                                             <li>Fill the form below and submit</li>

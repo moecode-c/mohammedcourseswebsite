@@ -29,7 +29,7 @@ export async function POST(req: Request) {
             .from("coursespictures")
             .upload(filename, Buffer.from(buffer), {
                 contentType: file.type,
-                cacheControl: "3600",
+                cacheControl: "31536000, immutable",
                 upsert: false,
             });
 
