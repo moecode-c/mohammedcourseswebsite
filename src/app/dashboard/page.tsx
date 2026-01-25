@@ -24,21 +24,47 @@ async function getData() {
     if (!payload) return { courses: [], user: null, certificateRequests: [] };
 
     await dbConnect();
-    const user = await User.findById(payload.userId);
+    const user = await User.findById(payload.userId).lean();
 
     if (user) {
-        const { updateStreak } = await import("@/lib/gamification");
-        await updateStreak(user);
+        // We need the Mongoose document for the method, so we might need to re-fetch or cast if using lean()
+        // Ideally, separate the updateStreak logic, but for now we'll do a quick specific fetch for streak update if needed
+        // or just accept the tiny overhead of one non-lean fetch for the user if we want to call methods.
+        // Optimization: Let's keep the user fetch lean for display speed, and do a separate fire-and-forget for streak if strict types allow.
+        // Actually, to call `updateStreak(user)`, user needs to be a document.
+        // Let's stick to finding the user as a Document for now to keep existing logic working, but optimize the course fetch heavily.
+        const userDoc = await User.findById(payload.userId);
+        if (userDoc) {
+            const { updateStreak } = await import("@/lib/gamification");
+            await updateStreak(userDoc);
+        }
     }
 
-    const courses = await Course.find({}).populate("sections").sort({ order: 1, createdAt: 1 }).lean();
+    if (!user) return { courses: [], user: null, certificateRequests: [] };
+
+    // Optimize: Filter at DB level
+    let query = {};
+    if (payload.role !== "admin") {
+        query = {
+            $or: [
+                { isFree: true },
+                { _id: { $in: (user as any).unlockedCourses || [] } }
+            ]
+        };
+    }
+
+    // Optimize: Only populate _id for sections to calculate progress, avoiding heavy content
+    const courses = await Course.find(query)
+        .populate("sections", "_id")
+        .sort({ order: 1, createdAt: 1 })
+        .lean();
 
     // Fetch certificate requests for this user
     const certificateRequests = await CertificateRequest.find({ userId: payload.userId }).lean();
 
     return {
         courses: JSON.parse(JSON.stringify(courses)),
-        user: user ? JSON.parse(JSON.stringify(user)) : null,
+        user: JSON.parse(JSON.stringify(user)),
         certificateRequests: JSON.parse(JSON.stringify(certificateRequests))
     };
 }
@@ -54,10 +80,8 @@ export default async function DashboardPage() {
         )
     }
 
-    // Only show courses the user has access to (free courses OR unlocked paid courses OR admin)
-    const enrolledCourses = courses.filter((c: any) =>
-        c.isFree || user.unlockedCourses?.includes(c._id) || user.role === "admin"
-    );
+    // Courses are already filtered by the DB query now
+    const enrolledCourses = courses;
 
     // Calculate stats
     const completedCoursesCount = user.completedCourses?.length || 0;

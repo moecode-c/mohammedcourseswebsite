@@ -14,7 +14,9 @@ import { ContactSection } from "@/components/ui/ContactSection";
 
 export default async function Home() {
   await dbConnect();
-  const featuredCourses = await Course.find({ isFeatured: true }).lean();
+  const featuredCourses = await Course.find({ isFeatured: true })
+    .select("title description thumbnail difficulty price discountPrice discountActive isFree slug")
+    .lean();
 
   return (
     <main className="min-h-screen bg-slate-950 flex flex-col items-center">
