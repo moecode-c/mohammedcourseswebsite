@@ -42,12 +42,18 @@ export async function GET(req: Request) {
             };
         }
 
-        const users = await User.find(query)
-            .select("-password")
-            .populate("unlockedCourses", "title price isFree")
-            .populate("completedCourses", "title")
-            .sort({ createdAt: -1 })
-            .lean();
+        // Check if full details are requested (for Users table vs Analytics/Overview)
+        const details = searchParams.get("details");
+
+        let queryBuilder = User.find(query).select("-password").sort({ createdAt: -1 });
+
+        if (details === "true") {
+            queryBuilder = queryBuilder
+                .populate("unlockedCourses", "title price isFree")
+                .populate("completedCourses", "title");
+        }
+
+        const users = await queryBuilder.lean();
 
         return NextResponse.json({ users });
     } catch (e) {

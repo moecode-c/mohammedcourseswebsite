@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 export async function GET() {
     try {
         await dbConnect();
-        const courses = await Course.find({}).populate("sections").sort({ createdAt: -1 });
+        const courses = await Course.find({}).populate("sections", "_id").sort({ createdAt: -1 });
         return NextResponse.json({ courses });
     } catch (error) {
         return NextResponse.json(

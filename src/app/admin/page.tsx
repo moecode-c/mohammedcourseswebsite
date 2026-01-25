@@ -78,6 +78,7 @@ export default function AdminDashboard() {
 
     const fetchUsersCount = async () => {
         try {
+            // Fetch basic list for analytics/count (no populated fields)
             const res = await fetch("/api/admin/users");
             if (res.ok) {
                 const data = await res.json();
@@ -86,6 +87,25 @@ export default function AdminDashboard() {
             }
         } catch (e) { console.error(e); }
     };
+
+    // Effect to load full user details only when viewing the Users tab
+    useEffect(() => {
+        if (currentView === "users") {
+            const fetchUserDetails = async () => {
+                try {
+                    setLoading(true);
+                    const res = await fetch("/api/admin/users?details=true");
+                    if (res.ok) {
+                        const data = await res.json();
+                        setAllUsers(data.users);
+                    }
+                } catch (e) { console.error(e); } finally {
+                    setLoading(false);
+                }
+            };
+            fetchUserDetails();
+        }
+    }, [currentView]);
 
     const fetchCourses = async () => {
         try {
